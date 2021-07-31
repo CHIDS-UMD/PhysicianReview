@@ -1,0 +1,17 @@
+# *.p
+.DS_Store
+.ipynb_checkpoints/
+Data/
+RegResult/
+Workplace/
+# RaceVaccineBackup/
+Part2/
+
+__pycache__/*
+*.pyc 
+
+
+
+_other/
+DoctorReview/
+
