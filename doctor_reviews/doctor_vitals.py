@@ -161,7 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=500, help=' ')
-    parser.add_argument('--angry_flag', type=int, default=3, help=' ')
+    # parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     args = parser.parse_args()
     
     # db_connection_str = 'mysql+pymysql://root:@localhost:3306/doctorinfo_sample?charset=utf8'
@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
     start = args.start 
     end = args.length + start
-    angry_flag = args.angry_flag
+    # angry_flag = args.angry_flag
 
     input_path = args.input_path
     Output_path = input_path.replace('.p', '_Vitals_s{}_e{}.p'.format(start, end))
