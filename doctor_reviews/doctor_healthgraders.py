@@ -1,0 +1,243 @@
+
+import pandas as pd
+from datetime import datetime
+import time
+import os
+import random
+import requests
+from scrapy.http import TextResponse
+from pprint import pprint
+from datetime import datetime
+import time
+import json
+import argparse
+
+HEADERS = {
+    "Connection": "keep-alive",
+    "Cache-Control": "max-age=0",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    # "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
+    'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',
+    "Accept-Encoding": "gzip,deflate,sdch",
+    # "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,zh-TW;q=0.2",
+}
+
+# HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
+
+
+
+def process_Json(response):
+    xpath = './/script[@type="text/javascript"]//text()'
+    selectors = response.xpath(xpath)
+    js_data = [i for i in selectors.extract()[3].split('\n')  if '= {' in i]
+    js_data = {t[0].strip(): json.loads(t[1][:-1]) for t in [i.split(' = ') for i in js_data]}
+    return js_data
+
+    
+def process_Pes(Pes):
+    d = {}
+    Pes_Model = Pes['model']
+    overall = Pes_Model['overall']
+    for item in ['responseCount','reviewCount','actualScore','roundedScore',]:
+        d[item] = overall[item]
+        
+    d['score_aggregates'] = Pes_Model["surveyDistribution"]['aggregates']
+    d['lastSurveyDate'] = Pes_Model['lastSurveyDate']
+    d['cards'] = Pes_Model['cards']
+    # at most 20 reviews
+    d['reviews'] = Pes['model']['comments']['results']
+    return d
+
+
+def process_viewModel(viewModel):
+    cols = ['npi', 'pwid', 'entityType', 'websiteUrl', 'logoUrl', 'imageUrl', 
+     'providerUrl', 'displayName', 'displayNamePossessive', 'providerDisplayFullName', 
+     'age', 'genderString', 'badges', 'languages', 
+     'hasAutoBiography', 'aboutMe', 'aboutMeVideoUrl', 
+     'aboutProvider', 'description', 'generatedbiography', 'autoBiography', 'cityNameAndState', 
+     'officeLocations', 'officePhone', 'acceptsNewPatients', 
+     'availability', 
+     'practicingSpecialties', 'medicalSpecialty', 
+     'awardsAndRecognitions', 'boardCertifications', 'insuranceAccepted', 
+     'isPrimaryLocationMalpracticeCollected', 'malpractices', 
+     'sponsorName', 'boardActions', 'memberships', 
+     'education', 'hospitals', 'hasConditions', 
+     'hasProcedures',  'existingPatientPhone', 
+     'readStoryScrolloffset', 'sanctions', 
+     'shouldShowVideoContent', 'showPatientVolumeData', 'showVisitingSection', 
+     'specialtyHasClinicalFocus', 'specialtyHeaderText', 'suppressCertifications',
+     'suppressSurveys', 'syndication', 'testimonies', 'uconnectEnvironment', 'writeMd',
+     'conditionsAndProcedures', 'clinicalFocusItems',]
+    d = {}
+    for i in cols:
+        d[i] = viewModel[i]
+    return d
+
+
+def process_xpath(response):
+    item2xpath = {
+        'biography': './/*[@data-qa-target="premium-biography"]//text()',
+        # 'strengths_item': './/li[@class="provider-strengths-item"]',
+        # 'rate_score': './/p[@class="score"]//text()',
+        # 'rate_num': './/p[@class="survey-count"]//text()',
+        # 'rate_details':'.//table[@class="rating-table"]//text()', 
+    }
+    itemselector2value = {
+        'biography': lambda x: x.extract(),
+        #  'strengths_item': lambda x: [''.join(i.xpath('.//div//text()').extract()[:4]) for i in x],
+        # 'rate_score': lambda x: float(x.extract()[0]), 
+        # 'rate_num': lambda x: int(x.extract()[1]), 
+        # 'rate_details': lambda x: x.extract(), 
+    }
+    d = {}
+    for item, xpath in item2xpath.items():
+        # print('\n')
+        # print(item)
+        selectors = response.xpath(xpath)#.extract()
+        values = itemselector2value[item](selectors)
+        d[item] = values
+        # print(values)
+    return d
+
+
+def scrapy_healthgraders_physician(url):
+
+
+    # as we cannot use Download Middleware in Scrapy, requests are used here instead.
+    r = requests.get(url, headers = HEADERS)
+    # load the text to scrapy-type response
+    response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
+
+    js_data = process_Json(response)
+    # [i for i in js_data]
+    Pes = js_data['pageState.pes']
+    d1 = process_Pes(Pes)
+
+    viewModel = js_data['pageState.viewModel']
+    d2 = process_viewModel(viewModel)
+
+
+    d3 = process_xpath(response)
+
+    d = dict(d1, **d2, **d3)
+    return d
+
+
+def get_healthgraders_reviews(url, reviewCount):
+
+    review_url = 'https://www.healthgrades.com/api4/providerprofile/comments'
+    pwid = url.split('-')[-1]
+    # pagenum = 1
+    perPage = 10
+    
+    L = []
+    
+    for pagenum in range(1, int(reviewCount / perPage) + 2):
+        forms = {
+            'currentPage': str(pagenum), 
+            'includeAllAnswers': 'ture',
+            'perPage': str(perPage),
+            'pwid': pwid.upper(),
+            'sortOption': str(1)
+        }
+        print(forms)
+
+        r = requests.post(review_url, headers = HEADERS, data = forms)
+
+        d = r.json().get('results', [])
+        if type(d) != list: d = []
+        print(len(d))
+        L.append(d)
+        
+    return sum(L, [])
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--input_path', type = str)
+    parser.add_argument('--start',  type=int, default=0, help=' ')
+    parser.add_argument('--length', type=int, default=500, help=' ')
+    parser.add_argument('--angry_flag', type=int, default=3, help=' ')
+    args = parser.parse_args()
+    
+    # db_connection_str = 'mysql+pymysql://root:@localhost:3306/doctorinfo_sample?charset=utf8'
+    # db_connection = create_engine(db_connection_str)
+    # df = pd.read_sql('SELECT * FROM physicians_sample', con=db_connection)
+
+    start = args.start 
+    end = args.length + start
+    angry_flag = args.angry_flag
+
+    input_path = args.input_path
+    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.p'.format(start, end))
+    print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
+    
+    
+    df = pd.read_pickle(input_path) 
+
+    name = 'healthgrades'
+    url_list = df[-df[name].isna()][name].to_list()
+    url_list = url_list[start:end]
+
+    # save the results to tmp_path
+
+    if os.path.exists(Output_path):
+        GoogleResult = pd.read_pickle(Output_path)
+        collected_NPIs = GoogleResult['url'].to_list()
+    else:
+        cols = ['responseCount', 'reviewCount', 'actualScore', 'roundedScore', 'score_aggregates', 
+                'lastSurveyDate', 'cards', 'reviews', 'npi', 'pwid', 'entityType', 'websiteUrl', 
+                'logoUrl', 'imageUrl', 'providerUrl', 'displayName', 'displayNamePossessive', 
+                'providerDisplayFullName', 'age', 'genderString', 'badges', 'languages', 
+                'hasAutoBiography', 'aboutMe', 'aboutMeVideoUrl', 'aboutProvider', 'description', 
+                'generatedbiography', 'autoBiography', 'cityNameAndState', 'officeLocations', 
+                'officePhone', 'acceptsNewPatients', 'availability', 'practicingSpecialties', 
+                'medicalSpecialty', 'awardsAndRecognitions', 'boardCertifications', 'insuranceAccepted', 
+                'isPrimaryLocationMalpracticeCollected', 'malpractices', 'sponsorName', 'boardActions', 
+                'memberships', 'education', 'hospitals', 'hasConditions', 'hasProcedures', 
+                'existingPatientPhone', 'readStoryScrolloffset', 'sanctions', 'shouldShowVideoContent', 
+                'showPatientVolumeData', 'showVisitingSection', 'specialtyHasClinicalFocus', 
+                'specialtyHeaderText', 'suppressCertifications', 'suppressSurveys', 'syndication', 
+                'testimonies', 'uconnectEnvironment', 
+                'writeMd', 'conditionsAndProcedures', 'clinicalFocusItems', 'biography', 'url', 'clct_time']
+        GoogleResult = pd.DataFrame(columns = cols)
+        collected_NPIs = GoogleResult['url'].to_list()
+        
+    print('\n\nCollected url {}'.format(len(collected_NPIs)))
+
+    flag = 0
+    angry_flag = int(angry_flag)
+    # L = []
+    for idx, url in enumerate(url_list):
+
+        # for url in :
+        print('\n\n{}'.format(idx) + url)
+        doc_info = scrapy_healthgraders_physician(url)
+        print('doctor name is: {}'.format(doc_info['providerDisplayFullName']))
+
+        # need to further explore?
+        reviewCount = doc_info['reviewCount']
+        if reviewCount > len(doc_info['reviews']):
+            print('We need to collect more reviews: {} vs {}'.format(len(doc_info['reviews']), reviewCount))
+            reviews = get_healthgraders_reviews(url, reviewCount)  
+            commentIds = [i['commentId'] for i in doc_info['reviews']]
+            for ind, commentId in enumerate(commentIds):
+                # print(commentId)
+                commentId_new = reviews[ind]['commentId']
+                # print(b)
+                assert commentId == commentId_new
+
+            assert len(reviews) == reviewCount
+            doc_info['reviews'] = reviews
+    
+        print('reivew number: {}'.format(len(doc_info['reviews'])))
+        doc_info['url'] = url
+        doc_info['clct_time'] = datetime.now()
+        Result = Result.append(doc_info, ignore_index=True)
+        Result.to_pickle(Output_path)
+        second = random.randrange(0, 5)
+        time.sleep(second)
+
+    
