@@ -172,9 +172,6 @@ if __name__ == '__main__':
     angry_flag = args.angry_flag
 
     input_path = args.input_path
-    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.p'.format(start, end))
-    print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
-    
     
     df = pd.read_pickle(input_path) 
     
@@ -182,8 +179,12 @@ if __name__ == '__main__':
     url_list = df[-df[name].isna()][name].to_list()
     # print(df.shape)
     # print(len(url_list))
+    end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
 
+    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.p'.format(start, end))
+    print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
+    
     # save the results to tmp_path
 
     if os.path.exists(Output_path):

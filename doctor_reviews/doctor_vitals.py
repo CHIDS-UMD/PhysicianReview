@@ -62,7 +62,7 @@ def process_Json(response):
 
 def process_Vitals(url, min_sec = 10):
     
-    print('\n\n=========\nExplore Doctor Profile URL: {}'.format(url))
+    print('\n=========\nExplore Doctor Profile URL: {}'.format(url))
     response = scrape_under_cloudflare(url, min_sec = min_sec)
     # print('get info from url: {}'.format(url))
     js_data = process_Json(response)
@@ -171,10 +171,9 @@ if __name__ == '__main__':
     start = args.start 
     end = args.length + start
     # angry_flag = args.angry_flag
-
+    
+    
     input_path = args.input_path
-    Output_path = input_path.replace('.p', '_Vitals_s{}_e{}.p'.format(start, end))
-    print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
     
     
     df = pd.read_pickle(input_path) 
@@ -182,8 +181,14 @@ if __name__ == '__main__':
     url_list = df[-df[name].isna()][name].to_list()
     # print(df.shape)
     # print(len(url_list))
+    end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
     # save the results to tmp_path
+    
+    
+    Output_path = input_path.replace('.p', '_Vitals_s{}_e{}.p'.format(start, end))
+    print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
+
 
     if os.path.exists(Output_path):
         Result = pd.read_pickle(Output_path)
@@ -213,7 +218,7 @@ if __name__ == '__main__':
             continue 
 
         try:
-            # print('\n\n{}\t'.format(idx) + url)
+            print('\n\n{}: '.format(idx) + url)
             doc_info = process_Vitals(url, min_sec)
         except Exception as e:
             print('Encounter the error {}. \nGo to next one...'.format(str(e)))
