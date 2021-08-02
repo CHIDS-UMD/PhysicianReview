@@ -46,6 +46,7 @@ def process_Pes(Pes):
     d['cards'] = Pes_Model['cards']
     # at most 20 reviews
     d['reviews'] = Pes['model']['comments']['results']
+
     return d
 
 
@@ -109,7 +110,7 @@ def scrapy_healthgraders_physician(url):
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
 
     js_data = process_Json(response)
-    # [i for i in js_data]
+    # print([i for i in js_data])
     Pes = js_data['pageState.pes']
     d1 = process_Pes(Pes)
 
@@ -184,8 +185,8 @@ if __name__ == '__main__':
     # save the results to tmp_path
 
     if os.path.exists(Output_path):
-        GoogleResult = pd.read_pickle(Output_path)
-        collected_NPIs = GoogleResult['url'].to_list()
+        Result = pd.read_pickle(Output_path)
+        collected_NPIs = Result['url'].to_list()
     else:
         cols = ['responseCount', 'reviewCount', 'actualScore', 'roundedScore', 'score_aggregates', 
                 'lastSurveyDate', 'cards', 'reviews', 'npi', 'pwid', 'entityType', 'websiteUrl', 
@@ -202,8 +203,8 @@ if __name__ == '__main__':
                 'specialtyHeaderText', 'suppressCertifications', 'suppressSurveys', 'syndication', 
                 'testimonies', 'uconnectEnvironment', 
                 'writeMd', 'conditionsAndProcedures', 'clinicalFocusItems', 'biography', 'url', 'clct_time']
-        GoogleResult = pd.DataFrame(columns = cols)
-        collected_NPIs = GoogleResult['url'].to_list()
+        Result = pd.DataFrame(columns = cols)
+        collected_NPIs = Result['url'].to_list()
         
     print('\n\nCollected url {}'.format(len(collected_NPIs)))
 
@@ -213,12 +214,22 @@ if __name__ == '__main__':
     for idx, url in enumerate(url_list):
 
         # for url in :
-        print('\n\n{}'.format(idx) + url)
-        doc_info = scrapy_healthgraders_physician(url)
-        print('doctor name is: {}'.format(doc_info['providerDisplayFullName']))
+        if url in collected_NPIs:
+            print('pass URL: {}'.format(url))
+            continue 
+
+        try:
+            print('\n\n{}\t'.format(idx) + url)
+            doc_info = scrapy_healthgraders_physician(url)
+            print('doctor name is: {}'.format(doc_info['providerDisplayFullName']))
+        except Exception as e:
+            print('Encounter the error {}. \nGo to next one...'.format(str(e)))
+            continue
 
         # need to further explore?
         reviewCount = doc_info['reviewCount']
+        print('Reported reviews {} v.s. collected reviews {}'.format(reviewCount, len(doc_info['reviews'])))
+        
         if reviewCount > len(doc_info['reviews']):
             print('We need to collect more reviews: {} vs {}'.format(len(doc_info['reviews']), reviewCount))
             reviews = get_healthgraders_reviews(url, reviewCount)  
@@ -229,7 +240,10 @@ if __name__ == '__main__':
                 # print(b)
                 assert commentId == commentId_new
 
-            assert len(reviews) == reviewCount
+            if len(reviews) != reviewCount:
+                print('Reported reviews {} is not equal to collected reviews {}'.format(reviewCount, len(reviews)))
+                doc_info['reviewCount'] = len(reviews)
+
             doc_info['reviews'] = reviews
     
         print('reivew number: {}'.format(len(doc_info['reviews'])))
