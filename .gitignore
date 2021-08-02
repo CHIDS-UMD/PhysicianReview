@@ -16,3 +16,5 @@ _other/
 DoctorReview/
 
 *.sql
+*.html
+*0.p
