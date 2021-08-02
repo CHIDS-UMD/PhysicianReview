@@ -177,9 +177,11 @@ if __name__ == '__main__':
     
     
     df = pd.read_pickle(input_path) 
-
+    
     name = 'healthgrades'
     url_list = df[-df[name].isna()][name].to_list()
+    # print(df.shape)
+    # print(len(url_list))
     url_list = url_list[start:end]
 
     # save the results to tmp_path
