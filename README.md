@@ -14,6 +14,7 @@ conda activate scrapy
 pip install scrapy
 pip install pandas
 pip install requests
+pip install cloudscraper
 
 ```
 
