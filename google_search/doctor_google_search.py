@@ -25,26 +25,26 @@ HEADERS = {
 # HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
 
 
-def get_doctor_info(DoctorDF):
-    doctor_infolist = []
-    for _, row in DoctorDF.iterrows():
-        # most results: fistname is before lastname
-        if row['MiddleName'] == None:
-            doctor_info = "{} {} {} {} {} {}".format(row['FirstName'], row['LastName'], 
-                                                  row['Primaryspecialty'], 
-                                                  row['City'], row['State'],
-                                                  row['Zip.Code'])
-        else:
-            doctor_info = "{} {} {} {} {} {} {}".format(row['FirstName'], row['MiddleName'],  row['LastName'], 
-                                                  row['Primaryspecialty'], 
-                                                  row['City'], row['State'],
-                                                  row['Zip.Code'])
+# def get_doctor_info(DoctorDF):
+#     doctor_infolist = []
+#     for _, row in DoctorDF.iterrows():
+#         # most results: fistname is before lastname
+#         if row['MiddleName'] == None:
+#             doctor_info = "{} {} {} {} {} {}".format(row['FirstName'], row['LastName'], 
+#                                                   row['Primaryspecialty'], 
+#                                                   row['City'], row['State'],
+#                                                   row['Zip.Code'])
+#         else:
+#             doctor_info = "{} {} {} {} {} {} {}".format(row['FirstName'], row['MiddleName'],  row['LastName'], 
+#                                                   row['Primaryspecialty'], 
+#                                                   row['City'], row['State'],
+#                                                   row['Zip.Code'])
             
             
-        # print(doctor_info)
-        doctor_infolist.append([row['NPI'], doctor_info])
+#         # print(doctor_info)
+#         doctor_infolist.append([row['NPI'], doctor_info])
 
-    return doctor_infolist
+#     return doctor_infolist
 
 
 def get_doctor_google_result(keyword, pages = 2, timeout = 10):
@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
-    parser.add_argument('--length', type=int, default=500, help=' ')
+    parser.add_argument('--length', type=int, default=10000, help=' ')
     parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     args = parser.parse_args()
     
@@ -100,16 +100,19 @@ if __name__ == '__main__':
     angry_flag = args.angry_flag
 
     DocListDF_path = args.input_path
-    Output_path = DocListDF_path.replace('.p', '_GoogleSearch_s{}_e{}.p'.format(start, end))
+    Output_path = DocListDF_path.replace('Data', 'Output').replace('.p', '_GoogleSearch_s{}_e{}.p'.format(start, end))
     print('Read data from\t{}\nSave results to\t{}\n'.format(DocListDF_path, Output_path))
     
-    
-    
     df = pd.read_pickle(DocListDF_path) 
-    cols = ['cId', 'crawlFlag', 'NPI',  'LastName', 'FirstName',
-            'MiddleName',  'City', 'State', 'Zip.Code', 'Primaryspecialty']
-    DoctorDF = df[cols]
-    doctor_infolist = get_doctor_info(DoctorDF)
+    # cols = ['cId', 'crawlFlag', 'NPI',  'LastName', 'FirstName',
+    #         'MiddleName',  'City', 'State', 'Zip.Code', 'Primaryspecialty']
+    # DoctorDF = df[cols]
+    # doctor_infolist = get_doctor_info(DoctorDF)
+
+    doctor_infolist = df['keyword'].to_list()
+
+
+    end = len(doctor_infolist) if len(doctor_infolist) < end else end
     doctor_infolist = doctor_infolist[start:end]
 
     # save the results to tmp_path
@@ -153,7 +156,7 @@ if __name__ == '__main__':
 
         # status = 1
         timestamp = str(datetime.now())
-
+        
         d = {
             'NPI': NPI, 
             'searched_urls': searched_urls,
