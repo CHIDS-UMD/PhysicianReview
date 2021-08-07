@@ -18,5 +18,6 @@ pip install cloudscraper
 ```
 git clone https://github.com/CHIDS-UMD/PhysicianReview.git
 cd PhysicianReview/google_search/
+mkdir Output
 python doctor_google_search.py --input_path=Data/DocListDF.p
 ```
