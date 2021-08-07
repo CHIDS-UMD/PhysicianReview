@@ -10,11 +10,12 @@ Part2/
 __pycache__/*
 *.pyc 
 
-
+Output/
 
 _other/
 DoctorReview/
-
+*/DocListDF_All.p
 *.sql
 *.html
 *0.p
+*.pptx
