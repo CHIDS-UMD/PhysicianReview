@@ -19,3 +19,7 @@ DoctorReview/
 *.html
 *0.p
 *.pptx
+
+
+DAC_*.*
+DOC_*.*
