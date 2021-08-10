@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
-    parser.add_argument('--length', type=int, default=500, help=' ')
+    parser.add_argument('--length', type=int, default=10000, help=' ')
     parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     args = parser.parse_args()
     
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
 
-    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.p'.format(start, end))
+    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.p'.format(start, end)).replace('Data', 'Output')
     print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
     
     # save the results to tmp_path
@@ -214,47 +214,47 @@ if __name__ == '__main__':
     flag = 0
     angry_flag = int(angry_flag)
     # L = []
-    for idx, url in enumerate(url_list):
+    for idx, urls in enumerate(url_list):
+        for url in urls: 
+            # for url in :
+            if url in collected_NPIs:
+                print('pass URL: {}'.format(url))
+                continue 
 
-        # for url in :
-        if url in collected_NPIs:
-            print('pass URL: {}'.format(url))
-            continue 
+            try:
+                print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
+                doc_info = scrapy_healthgraders_physician(url)
+                print('doctor name is: {}'.format(doc_info['providerDisplayFullName']))
+            except Exception as e:
+                print('Encounter the error {}. \nGo to next one...'.format(str(e)))
+                continue
 
-        try:
-            print('\n\n{}\t'.format(idx) + url)
-            doc_info = scrapy_healthgraders_physician(url)
-            print('doctor name is: {}'.format(doc_info['providerDisplayFullName']))
-        except Exception as e:
-            print('Encounter the error {}. \nGo to next one...'.format(str(e)))
-            continue
+            # need to further explore?
+            reviewCount = doc_info['reviewCount']
+            print('Reported reviews {} v.s. collected reviews {}'.format(reviewCount, len(doc_info['reviews'])))
+            
+            if reviewCount > len(doc_info['reviews']):
+                print('We need to collect more reviews: {} vs {}'.format(len(doc_info['reviews']), reviewCount))
+                reviews = get_healthgraders_reviews(url, reviewCount)  
+                commentIds = [i['commentId'] for i in doc_info['reviews']]
+                for ind, commentId in enumerate(commentIds):
+                    # print(commentId)
+                    commentId_new = reviews[ind]['commentId']
+                    # print(b)
+                    assert commentId == commentId_new
 
-        # need to further explore?
-        reviewCount = doc_info['reviewCount']
-        print('Reported reviews {} v.s. collected reviews {}'.format(reviewCount, len(doc_info['reviews'])))
+                if len(reviews) != reviewCount:
+                    print('Reported reviews {} is not equal to collected reviews {}'.format(reviewCount, len(reviews)))
+                    doc_info['reviewCount'] = len(reviews)
+
+                doc_info['reviews'] = reviews
         
-        if reviewCount > len(doc_info['reviews']):
-            print('We need to collect more reviews: {} vs {}'.format(len(doc_info['reviews']), reviewCount))
-            reviews = get_healthgraders_reviews(url, reviewCount)  
-            commentIds = [i['commentId'] for i in doc_info['reviews']]
-            for ind, commentId in enumerate(commentIds):
-                # print(commentId)
-                commentId_new = reviews[ind]['commentId']
-                # print(b)
-                assert commentId == commentId_new
+            print('reivew number: {}'.format(len(doc_info['reviews'])))
+            doc_info['url'] = url
+            doc_info['clct_time'] = datetime.now()
+            Result = Result.append(doc_info, ignore_index=True)
+            Result.to_pickle(Output_path)
+            second = random.randrange(5, 10)
+            time.sleep(second)
 
-            if len(reviews) != reviewCount:
-                print('Reported reviews {} is not equal to collected reviews {}'.format(reviewCount, len(reviews)))
-                doc_info['reviewCount'] = len(reviews)
-
-            doc_info['reviews'] = reviews
-    
-        print('reivew number: {}'.format(len(doc_info['reviews'])))
-        doc_info['url'] = url
-        doc_info['clct_time'] = datetime.now()
-        Result = Result.append(doc_info, ignore_index=True)
-        Result.to_pickle(Output_path)
-        second = random.randrange(0, 5)
-        time.sleep(second)
-
-    
+        

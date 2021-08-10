@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
-    parser.add_argument('--length', type=int, default=500, help=' ')
+    parser.add_argument('--length', type=int, default=10000, help=' ')
     # parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     args = parser.parse_args()
     
@@ -211,24 +211,24 @@ if __name__ == '__main__':
 
 
     min_sec = 1
-    for idx, url in enumerate(url_list):
-        # for url in :
-        if url in collected_NPIs:
-            print('pass URL: {}'.format(url))
-            continue 
+    for idx, urls in enumerate(url_list):
+        for url in urls:
+            # for url in :
+            if url in collected_NPIs:
+                print('pass URL: {}'.format(url))
+                continue 
+            try:
+                print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
+                doc_info = process_Vitals(url, min_sec)
+            except Exception as e:
+                print('Encounter the error {}. \nGo to next one...'.format(str(e)))
+                continue
 
-        try:
-            print('\n\n{}: '.format(idx) + url)
-            doc_info = process_Vitals(url, min_sec)
-        except Exception as e:
-            print('Encounter the error {}. \nGo to next one...'.format(str(e)))
-            continue
-
-        doc_info['url'] = url
-        doc_info['clct_time'] = datetime.now()
-        Result = Result.append(doc_info, ignore_index=True)
-        Result.to_pickle(Output_path)
-        second = random.randrange(0, 5)
-        time.sleep(second)
+            doc_info['url'] = url
+            doc_info['clct_time'] = datetime.now()
+            Result = Result.append(doc_info, ignore_index=True)
+            Result.to_pickle(Output_path)
+            second = random.randrange(5, 10)
+            time.sleep(second)
 
     
