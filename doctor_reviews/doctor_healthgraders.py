@@ -252,6 +252,17 @@ if __name__ == '__main__':
             print('reivew number: {}'.format(len(doc_info['reviews'])))
             doc_info['url'] = url
             doc_info['clct_time'] = datetime.now()
+            
+            try:
+                Result2 = Result.append(doc_info, ignore_index=True)
+                Result2.to_json(Output_path.replace('.', '_tmp.'))
+                Result2 = pd.read_json(Output_path.replace('.', '_tmp.'))
+                os.remove(Output_path.replace('.', '_tmp.'))
+            except:
+                # abort this physician
+                print('Writing Errors {}. \nGo to next one...'.format(str(e)))
+                continue
+
             Result = Result.append(doc_info, ignore_index=True)
             Result.to_json(Output_path)
             second = random.randrange(5, 10)
