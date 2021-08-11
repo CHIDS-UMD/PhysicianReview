@@ -182,13 +182,13 @@ if __name__ == '__main__':
     end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
 
-    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.p'.format(start, end)).replace('Data', 'Output')
+    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.json'.format(start, end)).replace('Data', 'Output')
     print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
     
     # save the results to tmp_path
 
     if os.path.exists(Output_path):
-        Result = pd.read_pickle(Output_path)
+        Result = pd.read_json(Output_path)
         collected_NPIs = Result['url'].to_list()
     else:
         cols = ['responseCount', 'reviewCount', 'actualScore', 'roundedScore', 'score_aggregates', 
@@ -253,7 +253,7 @@ if __name__ == '__main__':
             doc_info['url'] = url
             doc_info['clct_time'] = datetime.now()
             Result = Result.append(doc_info, ignore_index=True)
-            Result.to_pickle(Output_path)
+            Result.to_json(Output_path)
             second = random.randrange(5, 10)
             time.sleep(second)
 
