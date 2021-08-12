@@ -198,12 +198,12 @@ if __name__ == '__main__':
         print('\n' + file )
 
     # get collected urls:
-    if len(pkl_files) > 0:
-        collected_NPIs = pd.concat([pd.read_pickle(file) for file in pkl_files])['url'].to_list()
-    else:
-        collected_NPIs = []
+    # if len(pkl_files) > 0:
+    #     collected_NPIs = pd.concat([pd.read_pickle(file) for file in pkl_files])['url'].to_list()
+    # else:
+    #     collected_NPIs = []
 
-    print('\n\nCollected url {}'.format(len(collected_NPIs)))
+    # print('\n\nCollected url {}'.format(len(collected_NPIs)))
 
     # flag = 0
     # angry_flag = int(angry_flag)
