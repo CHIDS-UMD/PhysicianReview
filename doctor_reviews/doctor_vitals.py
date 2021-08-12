@@ -162,66 +162,104 @@ if __name__ == '__main__':
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
     # parser.add_argument('--angry_flag', type=int, default=3, help=' ')
+    parser.add_argument('--chunk', type=int, default=500, help=' ')
     args = parser.parse_args()
     
-    # db_connection_str = 'mysql+pymysql://root:@localhost:3306/doctorinfo_sample?charset=utf8'
-    # db_connection = create_engine(db_connection_str)
-    # df = pd.read_sql('SELECT * FROM physicians_sample', con=db_connection)
-
     start = args.start 
     end = args.length + start
-    # angry_flag = args.angry_flag
-    
     
     input_path = args.input_path
-    
-    
     df = pd.read_pickle(input_path) 
+    
     name = 'vitals'
     url_list = df[-df[name].isna()][name].to_list()
     # print(df.shape)
     # print(len(url_list))
     end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
+
+
+    OutputFolder = input_path.replace('.p', '_s{}_e{}'.format(start, end)).replace('Data', 'Output')
+    Error_Output_path = os.path.join(OutputFolder, name +   '_errorlog.txt') # Output_path.replace('.p', '_errorlog.txt')
+    
+    if not os.path.exists(OutputFolder): 
+        os.makedirs(OutputFolder)
+    
+    # print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
+    print('Read doctor list from: \t{}\nSave results to:\t{}\nSave Error Log to:\t{}'.format(input_path, OutputFolder, Error_Output_path))
+
+
     # save the results to tmp_path
-    
-    
-    Output_path = input_path.replace('.p', '_Vitals_s{}_e{}.json'.format(start, end)).replace('Data', 'Output')
-    print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
+    pkl_files = [os.path.join(OutputFolder, i) for i in os.listdir(OutputFolder) if '.p' in i]
+    for file in pkl_files:
+        print('\n' + file )
 
 
-    if os.path.exists(Output_path):
-        Result = pd.read_json(Output_path)
-        collected_NPIs = Result['url'].to_list()
+    # get collected urls:
+    if len(pkl_files) > 0:
+        collected_NPIs = pd.concat([pd.read_pickle(file) for file in pkl_files])['url'].to_list()
     else:
-        cols = ['npi', 'providerid', 'intid', 'entityid_s', 'sponsorid', 'display_type', 'profiletype', 'type', 
-                'firstname', 'middlename', 'lastname', 'fullname', 'gender', 'langspoken', 'about_bio', 'bio_s',
-                'photourl', 'providerwebsiteurl', 'profileurl', 'video', 'quick_facts', 
-                'isDentist', 'is_legacy_provider', 'years_of_experience', 'acceptsnewpatients', 'specialty_nimvs', 
-                'fallback_specialties', 'fallback_specialty', 'provider_expertise', 'degreeabbr', 
-                'certifications', 'awards', 'total_awards', 'education_nimvs', 'location_nimvs', 
-                'hospital_nimvs', 'displayhospitals', 'city', 'state', 'postalcode', 'geolocation',
-                'insurance_facet', 'number_of_ratings', 'ratings_per_star', 'rating_score', 'rating_overview', 
-                'review_count', 'review_questions', 'recent_reviews', 'review_urls', 
-                'success_review_urls', 'reviews', 'url', 'clct_time']
-        Result = pd.DataFrame(columns = cols)
-        collected_NPIs = Result['url'].to_list()
-        
-    print('\n\nCollected url {}'.format(len(collected_NPIs)))
+        collected_NPIs = []
 
+
+    print('\n\nCollected url {}'.format(len(collected_NPIs)))
+    
+    chunk = int(args.chunk)
+    ## Loop the doctors
+    error_list = []
 
     min_sec = 1
     for idx, urls in enumerate(url_list):
+
+        # current url's chunk_id
+        chunk_id = int(idx / chunk)
+        new_s = start + chunk_id*chunk
+        new_e = start + (chunk_id+1)*chunk if start + (chunk_id+1)*chunk < end else end
+        chunk_name = '{}_s{}_e{}.p'.format(name, new_s,  new_e)
+        chunk_file = os.path.join(OutputFolder, chunk_name)
+
+        # generate Results
+        if idx % chunk == 0:
+            print('\n\nChunk {}: Generate the new Result for the new Chunk...'.format(chunk_id))
+            if os.path.isfile(chunk_file):
+                Result = pd.read_pickle(chunk_file) 
+            else:
+                cols = ['npi', 'providerid', 'intid', 'entityid_s', 'sponsorid', 'display_type', 'profiletype', 'type', 
+                        'firstname', 'middlename', 'lastname', 'fullname', 'gender', 'langspoken', 'about_bio', 'bio_s',
+                        'photourl', 'providerwebsiteurl', 'profileurl', 'video', 'quick_facts', 
+                        'isDentist', 'is_legacy_provider', 'years_of_experience', 'acceptsnewpatients', 'specialty_nimvs', 
+                        'fallback_specialties', 'fallback_specialty', 'provider_expertise', 'degreeabbr', 
+                        'certifications', 'awards', 'total_awards', 'education_nimvs', 'location_nimvs', 
+                        'hospital_nimvs', 'displayhospitals', 'city', 'state', 'postalcode', 'geolocation',
+                        'insurance_facet', 'number_of_ratings', 'ratings_per_star', 'rating_score', 'rating_overview', 
+                        'review_count', 'review_questions', 'recent_reviews', 'review_urls', 
+                        'success_review_urls', 'reviews', 'url', 'clct_time']
+                Result = pd.DataFrame(columns = cols)
+                # Result.to_pickle(chunk_file)
+
+        # we have a Result now by any cases.
         for url in urls:
-            # for url in :
-            if url in collected_NPIs:
+            # case 1
+            if url in Result['url'].values:
+                # if url not in Result['url'].values:
+                #     print('url is not in collected_NPIs', url)
+                #     print(chunk_file)
+                # assert url in Result['url'].values
                 print('pass URL: {}'.format(url))
                 continue 
+
+            # case 2
+            s = datetime.now()
+
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
                 doc_info = process_Vitals(url, min_sec)
+                print('doctor name is: {}'.format(doc_info['fullname']))
+            
             except Exception as e:
                 print('Encounter the error {}. \nGo to next one...'.format(str(e)))
+                error_list.append({'idx':idx, 'url':url, 'error': str(e), 'time': str(datetime.now())})
+                pd.DataFrame(error_list).to_csv(Error_Output_path)
 
                 if 'Cloudfare' in str(e):
                     print('Cloudfare is angry, stop here!')
@@ -234,17 +272,25 @@ if __name__ == '__main__':
             
             try:
                 Result2 = Result.append(doc_info, ignore_index=True)
-                Result2.to_json(Output_path.replace('.', '_tmp.'))
-                Result2 = pd.read_json(Output_path.replace('.', '_tmp.'))
-                os.remove(Output_path.replace('.', '_tmp.'))
+                Result2.to_pickle(chunk_file.replace('.', '_tmp.'))
+                Result2 = pd.read_pickle(chunk_file.replace('.', '_tmp.'))
+                os.remove(chunk_file.replace('.', '_tmp.'))
             except:
-                # abort this physician
+                # case 2.e2
                 print('Writing Errors {}. \nGo to next one...'.format(str(e)))
+                error_list.append({'idx':idx,  'url':url, 'error': 'FileIOError:'+str(e), 'time': str(datetime.now())})
+                pd.DataFrame(error_list).to_csv(Error_Output_path)
                 continue
 
             Result = Result.append(doc_info, ignore_index=True)
-            Result.to_json(Output_path)
-            second = random.randrange(5, 10)
+            Result.to_pickle(chunk_file)
+            print('Save data to: {}'.format(chunk_file))
+            
+            second = random.randrange(3, 6)
             time.sleep(second)
+
+            e = datetime.now()
+            print('Time Used:', e - s )
+
 
     

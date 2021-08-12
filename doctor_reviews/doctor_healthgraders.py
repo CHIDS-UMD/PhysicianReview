@@ -1,4 +1,3 @@
-
 import pandas as pd
 from datetime import datetime
 import time
@@ -160,6 +159,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
+    parser.add_argument('--chunk', type=int, default=500, help=' ')
     parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     args = parser.parse_args()
     
@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
     start = args.start 
     end = args.length + start
-    angry_flag = args.angry_flag
+    # angry_flag = args.angry_flag
 
     input_path = args.input_path
     
@@ -182,51 +182,96 @@ if __name__ == '__main__':
     end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
 
-    Output_path = input_path.replace('.p', '_HealthGraders_s{}_e{}.json'.format(start, end)).replace('Data', 'Output')
-    print('Read data from\t{}\nSave results to\t{}\n'.format(input_path, Output_path))
+    OutputFolder = input_path.replace('.p', '_s{}_e{}'.format(start, end)).replace('Data', 'Output')
+    Error_Output_path = os.path.join(OutputFolder, name +   '_errorlog.txt') # Output_path.replace('.p', '_errorlog.txt')
+    
+    if not os.path.exists(OutputFolder): 
+        os.makedirs(OutputFolder)
+    
+    
+    print('Read doctor list from: \t{}\nSave results to:\t{}\nSave Error Log to:\t{}'.format(input_path, OutputFolder, Error_Output_path))
+
     
     # save the results to tmp_path
+    pkl_files = [os.path.join(OutputFolder, i) for i in os.listdir(OutputFolder) if '.p' in i]
+    for file in pkl_files:
+        print('\n' + file )
 
-    if os.path.exists(Output_path):
-        Result = pd.read_json(Output_path)
-        collected_NPIs = Result['url'].to_list()
+    # get collected urls:
+    if len(pkl_files) > 0:
+        collected_NPIs = pd.concat([pd.read_pickle(file) for file in pkl_files])['url'].to_list()
     else:
-        cols = ['responseCount', 'reviewCount', 'actualScore', 'roundedScore', 'score_aggregates', 
-                'lastSurveyDate', 'cards', 'reviews', 'npi', 'pwid', 'entityType', 'websiteUrl', 
-                'logoUrl', 'imageUrl', 'providerUrl', 'displayName', 'displayNamePossessive', 
-                'providerDisplayFullName', 'age', 'genderString', 'badges', 'languages', 
-                'hasAutoBiography', 'aboutMe', 'aboutMeVideoUrl', 'aboutProvider', 'description', 
-                'generatedbiography', 'autoBiography', 'cityNameAndState', 'officeLocations', 
-                'officePhone', 'acceptsNewPatients', 'availability', 'practicingSpecialties', 
-                'medicalSpecialty', 'awardsAndRecognitions', 'boardCertifications', 'insuranceAccepted', 
-                'isPrimaryLocationMalpracticeCollected', 'malpractices', 'sponsorName', 'boardActions', 
-                'memberships', 'education', 'hospitals', 'hasConditions', 'hasProcedures', 
-                'existingPatientPhone', 'readStoryScrolloffset', 'sanctions', 'shouldShowVideoContent', 
-                'showPatientVolumeData', 'showVisitingSection', 'specialtyHasClinicalFocus', 
-                'specialtyHeaderText', 'suppressCertifications', 'suppressSurveys', 'syndication', 
-                'testimonies', 'uconnectEnvironment', 
-                'writeMd', 'conditionsAndProcedures', 'clinicalFocusItems', 'biography', 'url', 'clct_time']
-        Result = pd.DataFrame(columns = cols)
-        collected_NPIs = Result['url'].to_list()
-        
+        collected_NPIs = []
+
     print('\n\nCollected url {}'.format(len(collected_NPIs)))
 
-    flag = 0
-    angry_flag = int(angry_flag)
+    # flag = 0
+    # angry_flag = int(angry_flag)
     # L = []
+
+    chunk = int(args.chunk)
+    ## Loop the doctors
+    error_list = []
+
+
+    # old_chunk_id = -1 # the first one is 0.
+    # empty_Result = True
+    
     for idx, urls in enumerate(url_list):
+
+        # current url's chunk_id
+        chunk_id = int(idx / chunk)
+        new_s = start + chunk_id*chunk
+        new_e = start + (chunk_id+1)*chunk if start + (chunk_id+1)*chunk < end else end
+        chunk_name = '{}_s{}_e{}.p'.format(name, new_s, new_e)
+        chunk_file = os.path.join(OutputFolder, chunk_name)
+
+        # generate Results
+        if idx % chunk == 0:
+            # if mean the end, then create a Result.
+            print('\n\nChunk {}: Generate the new Result for the new Chunk...'.format(chunk_id))
+            if os.path.isfile(chunk_file):
+                Result = pd.read_pickle(chunk_file) 
+            else:
+                cols = ['responseCount', 'reviewCount', 'actualScore', 'roundedScore', 'score_aggregates', 
+                        'lastSurveyDate', 'cards', 'reviews', 'npi', 'pwid', 'entityType', 'websiteUrl', 
+                        'logoUrl', 'imageUrl', 'providerUrl', 'displayName', 'displayNamePossessive', 
+                        'providerDisplayFullName', 'age', 'genderString', 'badges', 'languages', 
+                        'hasAutoBiography', 'aboutMe', 'aboutMeVideoUrl', 'aboutProvider', 'description', 
+                        'generatedbiography', 'autoBiography', 'cityNameAndState', 'officeLocations', 
+                        'officePhone', 'acceptsNewPatients', 'availability', 'practicingSpecialties', 
+                        'medicalSpecialty', 'awardsAndRecognitions', 'boardCertifications', 'insuranceAccepted', 
+                        'isPrimaryLocationMalpracticeCollected', 'malpractices', 'sponsorName', 'boardActions', 
+                        'memberships', 'education', 'hospitals', 'hasConditions', 'hasProcedures', 
+                        'existingPatientPhone', 'readStoryScrolloffset', 'sanctions', 'shouldShowVideoContent', 
+                        'showPatientVolumeData', 'showVisitingSection', 'specialtyHasClinicalFocus', 
+                        'specialtyHeaderText', 'suppressCertifications', 'suppressSurveys', 'syndication', 
+                        'testimonies', 'uconnectEnvironment', 
+                        'writeMd', 'conditionsAndProcedures', 'clinicalFocusItems', 'biography', 'url', 'clct_time']
+                Result = pd.DataFrame(columns = cols)
+                # Result.to_pickle(chunk_file)
+
+        # we have a Result now by any cases.
         for url in urls: 
-            # for url in :
-            if url in collected_NPIs:
+            # case 1
+            if url in Result['url'].values:
+                # assert url in Result['url'].values
                 print('pass URL: {}'.format(url))
                 continue 
 
+            # case 2
+            s = datetime.now()
+        
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
                 doc_info = scrapy_healthgraders_physician(url)
                 print('doctor name is: {}'.format(doc_info['providerDisplayFullName']))
+            
             except Exception as e:
+                # case 2.e1
                 print('Encounter the error {}. \nGo to next one...'.format(str(e)))
+                error_list.append({'idx':idx, 'url':url, 'error': str(e), 'time': str(datetime.now())})
+                pd.DataFrame(error_list).to_csv(Error_Output_path)
                 continue
 
             # need to further explore?
@@ -255,17 +300,25 @@ if __name__ == '__main__':
             
             try:
                 Result2 = Result.append(doc_info, ignore_index=True)
-                Result2.to_json(Output_path.replace('.', '_tmp.'))
-                Result2 = pd.read_json(Output_path.replace('.', '_tmp.'))
-                os.remove(Output_path.replace('.', '_tmp.'))
-            except:
-                # abort this physician
+                Result2.to_pickle(chunk_file.replace('.', '_tmp.'))
+                Result2 = pd.read_pickle(chunk_file.replace('.', '_tmp.'))
+                os.remove(chunk_file.replace('.', '_tmp.'))
+            
+            except Exception as e:
+                # case 2.e2
                 print('Writing Errors {}. \nGo to next one...'.format(str(e)))
+                error_list.append({'idx':idx,  'url':url, 'error': 'FileIOError:'+str(e), 'time': str(datetime.now())})
+                pd.DataFrame(error_list).to_csv(Error_Output_path)
                 continue
 
             Result = Result.append(doc_info, ignore_index=True)
-            Result.to_json(Output_path)
-            second = random.randrange(5, 10)
+            Result.to_pickle(chunk_file)
+            print('Save data to: {}'.format(chunk_file))
+            
+            second = random.randrange(3, 6)
             time.sleep(second)
+
+            e = datetime.now()
+            print('Time Used:', e - s )
 
         
