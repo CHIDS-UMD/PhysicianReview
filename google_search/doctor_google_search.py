@@ -9,8 +9,12 @@ from scrapy.http import TextResponse
 from pprint import pprint
 from datetime import datetime
 import time
-
+from twilio.rest import Client
 import argparse
+
+account_sid = "ACaee794138a64e5fbd03092d937b5f779"
+auth_token = '63a72e46ea738a20eae7a8157c22fb24'
+client = Client(account_sid, auth_token)
 
 HEADERS = {
     "Connection": "keep-alive",
@@ -139,7 +143,7 @@ if __name__ == '__main__':
             continue
             
         # start searching from here.
-        print('\n\n{}\t'.format(idx) + str(datetime.now()), '\t', keyword, NPI)
+        print('\n\n{} & {}\t'.format(start + idx, idx) + str(datetime.now()), '\t', keyword, NPI)
 
         if flag == angry_flag:
             print('Stop here: Google is angry!')
@@ -151,8 +155,6 @@ if __name__ == '__main__':
             flag += 1
             print('No results for:', NPI, keyword, '\tflag is {}/{}\t'.format(flag, angry_flag))
             continue
-
-        
 
         # status = 1
         timestamp = str(datetime.now())
@@ -170,4 +172,13 @@ if __name__ == '__main__':
         second = random.randrange(0, 5)
         time.sleep(second)
 
-    
+
+    if flag == angry_flag:
+        message = client.messages.create(body =  "Failed ! Google is Angry! save as {}".format(),
+                    from_ = "+16106012683 ", to = "+12405243597", )
+
+    else:
+        message = client.messages.create(body =  "Success ! save as {}".format(),
+                    from_ = "+16106012683 ", to = "+12405243597", )
+
+
