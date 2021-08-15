@@ -12,8 +12,6 @@ import time
 from twilio.rest import Client
 import argparse
 
-account_sid = "ACaee794138a64e5fbd03092d937b5f779"
-client = Client(account_sid, auth_token)
 
 HEADERS = {
     "Connection": "keep-alive",
@@ -93,12 +91,24 @@ if __name__ == '__main__':
     parser.add_argument('--length', type=int, default=10000, help=' ')
     parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     parser.add_argument('--auth_token', type=str, default=3, help=' ')
+    parser.add_argument('--account_sid', type=str, default=3, help=' ')
+    # parser.add_argument('--your_phonenumber', type=str, default=3, help=' ')
     args = parser.parse_args()
     
     # db_connection_str = 'mysql+pymysql://root:@localhost:3306/doctorinfo_sample?charset=utf8'
     # db_connection = create_engine(db_connection_str)
     # df = pd.read_sql('SELECT * FROM physicians_sample', con=db_connection)
-    auth_token = args.auth_token
+    try:
+        auth_token = args.auth_token
+        account_sid = args.account_sid  
+        client = Client(account_sid, auth_token)
+    except:
+        client = None
+        print('No SMS Client')
+
+
+
+
     start = args.start 
     end = args.length + start
     angry_flag = args.angry_flag
@@ -147,8 +157,9 @@ if __name__ == '__main__':
 
         if flag == angry_flag:
             print('Stop here: Google is angry!')
-            message = client.messages.create(body =  "Failed ! Google is Angry! Save as {}, with current idx {}.".format(Output_path, start + idx),
-                    from_ = "+16106012683 ", to = "+12405243597", )
+            if client: 
+                message = client.messages.create(body =  "Failed ! Google is Angry! Save as {}, with current idx {}.".format(Output_path, start + idx),
+                        from_ = "+16106012683 ", to = "+12405243597", )
 
             break
 
@@ -175,7 +186,7 @@ if __name__ == '__main__':
         second = random.randrange(0, 5)
         time.sleep(second)
         
-    if flag < angry_flag:
+    if flag < angry_flag and client:
         message = client.messages.create(body =  "Success ! Save as {}, with current idx {}.".format(Output_path, start + idx),
                     from_ = "+16106012683 ", to = "+12405243597", )
 
