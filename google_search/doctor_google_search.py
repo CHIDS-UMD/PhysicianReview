@@ -147,6 +147,9 @@ if __name__ == '__main__':
 
         if flag == angry_flag:
             print('Stop here: Google is angry!')
+            message = client.messages.create(body =  "Failed ! Google is Angry! Save as {}, with current idx {}.".format(Output_path, start + idx),
+                    from_ = "+16106012683 ", to = "+12405243597", )
+
             break
 
 
@@ -171,13 +174,8 @@ if __name__ == '__main__':
         GoogleResult.to_pickle(Output_path)
         second = random.randrange(0, 5)
         time.sleep(second)
-
-
-    if flag == angry_flag:
-        message = client.messages.create(body =  "Failed ! Google is Angry! Save as {}, with current idx {}.".format(Output_path, start + idx),
-                    from_ = "+16106012683 ", to = "+12405243597", )
-
-    else:
+        
+    if flag < angry_flag:
         message = client.messages.create(body =  "Success ! Save as {}, with current idx {}.".format(Output_path, start + idx),
                     from_ = "+16106012683 ", to = "+12405243597", )
 
