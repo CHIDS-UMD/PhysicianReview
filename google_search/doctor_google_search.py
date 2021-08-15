@@ -174,11 +174,11 @@ if __name__ == '__main__':
 
 
     if flag == angry_flag:
-        message = client.messages.create(body =  "Failed ! Google is Angry! save as {}".format(),
+        message = client.messages.create(body =  "Failed ! Google is Angry! Save as {}, with current idx {}.".format(Output_path, start + idx),
                     from_ = "+16106012683 ", to = "+12405243597", )
 
     else:
-        message = client.messages.create(body =  "Success ! save as {}".format(),
+        message = client.messages.create(body =  "Success ! Save as {}, with current idx {}.".format(Output_path, start + idx),
                     from_ = "+16106012683 ", to = "+12405243597", )
 
 
