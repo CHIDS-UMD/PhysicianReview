@@ -13,7 +13,6 @@ from twilio.rest import Client
 import argparse
 
 account_sid = "ACaee794138a64e5fbd03092d937b5f779"
-auth_token = '63a72e46ea738a20eae7a8157c22fb24'
 client = Client(account_sid, auth_token)
 
 HEADERS = {
@@ -93,12 +92,13 @@ if __name__ == '__main__':
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
     parser.add_argument('--angry_flag', type=int, default=3, help=' ')
+    parser.add_argument('--auth_token', type=str, default=3, help=' ')
     args = parser.parse_args()
     
     # db_connection_str = 'mysql+pymysql://root:@localhost:3306/doctorinfo_sample?charset=utf8'
     # db_connection = create_engine(db_connection_str)
     # df = pd.read_sql('SELECT * FROM physicians_sample', con=db_connection)
-
+    auth_token = args.auth_token
     start = args.start 
     end = args.length + start
     angry_flag = args.angry_flag
