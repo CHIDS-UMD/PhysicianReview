@@ -13,17 +13,17 @@ from twilio.rest import Client
 import argparse
 
 
-HEADERS = {
-    "Connection": "keep-alive",
-    "Cache-Control": "max-age=0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    # "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
-    'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',
-    "Accept-Encoding": "gzip,deflate,sdch",
-    # "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,zh-TW;q=0.2",
-}
+# HEADERS = {
+#     "Connection": "keep-alive",
+#     "Cache-Control": "max-age=0",
+#     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+#     # "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
+#     'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',
+#     "Accept-Encoding": "gzip,deflate,sdch",
+#     # "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,zh-TW;q=0.2",
+# }
 
-# HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
+HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
 
 
 # def get_doctor_info(DoctorDF):
@@ -90,21 +90,23 @@ if __name__ == '__main__':
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
     parser.add_argument('--angry_flag', type=int, default=3, help=' ')
-    parser.add_argument('--auth_token', type=str, default=3, help=' ')
-    parser.add_argument('--account_sid', type=str, default=3, help=' ')
+    parser.add_argument('--auth_token', type=str, default='', help='')
+    parser.add_argument('--account_sid', type=str, default='', help='')
     # parser.add_argument('--your_phonenumber', type=str, default=3, help=' ')
     args = parser.parse_args()
     
     # db_connection_str = 'mysql+pymysql://root:@localhost:3306/doctorinfo_sample?charset=utf8'
     # db_connection = create_engine(db_connection_str)
     # df = pd.read_sql('SELECT * FROM physicians_sample', con=db_connection)
-    try:
-        auth_token = args.auth_token
-        account_sid = args.account_sid  
+    auth_token = args.auth_token
+    account_sid = args.account_sid  
+    
+    
+    if account_sid != '' and auth_token != '':
         client = Client(account_sid, auth_token)
-    except:
+    else:
         client = None
-        print('No SMS Client')
+        # print('No SMS Client')
 
 
 
@@ -181,7 +183,8 @@ if __name__ == '__main__':
         GoogleResult.to_pickle(Output_path)
         second = random.randrange(0, 5)
         time.sleep(second)
-        
+    
+    # print(client)
     if flag < angry_flag and client:
         message = client.messages.create(body =  "Success ! Save as {}, with current idx {}.".format(Output_path, start + idx),
                                          from_ = "+16106012683 ", to = "+12405243597", )
