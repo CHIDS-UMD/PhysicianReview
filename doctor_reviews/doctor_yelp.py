@@ -394,6 +394,7 @@ if __name__ == '__main__':
 
             doc_info['url'] = url
             doc_info['clct_time'] = datetime.now()
+
             
             try:
                 Result2 = Result.append(doc_info, ignore_index=True)
@@ -409,6 +410,11 @@ if __name__ == '__main__':
 
             Result = Result.append(doc_info, ignore_index=True)
             Result.to_pickle(chunk_file)
+
+            print('Good    Reviews: reported {} vs collected {}'.format(doc_info['reviewCount'], len(doc_info['reviews_detailed'])))
+            print('Blocked Reviews: reported {} vs collected {}'.format(doc_info['blocked_reviews_num'], len(doc_info['blocked_reviews'])))
+            print('Removed Reviews: reported {} vs collected {}'.format(doc_info['removed_reviews_num'], len(doc_info['removed_reviews'])))
+
             print('Save data to: {}'.format(chunk_file))
             
             second = random.randrange(3, 6)
