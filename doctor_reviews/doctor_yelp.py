@@ -20,6 +20,8 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
 }
 
+
+
 def decompose_jQuery(d, x):
     # d is input dict; x is the original list
     for k, v in d.items():
@@ -167,8 +169,9 @@ def get_physician_info_from_yelp_url(ph_url):
     l = [i for i in js_list]
 
     # aim 1: get common questions
-    idx = 14
-    json_string = l[idx]
+    # idx = 14
+    # json_string = l[idx]
+    json_string = [i for i in l if 'mainEntity' in i][0]
     try:
         d = json.loads(json_string)
         physician_info['Questions'] = d
@@ -177,8 +180,9 @@ def get_physician_info_from_yelp_url(ph_url):
 
 
     # aim 2: get reviewCount
-    idx = 16
-    json_string = l[idx]
+    # idx = 16
+    # json_string = l[idx]
+    json_string = [i for i in l if 'aggregateRating' in i][0]
     d = json.loads(json_string)
     review1_d = d
     # pprint(review1_d)
@@ -187,8 +191,9 @@ def get_physician_info_from_yelp_url(ph_url):
 
 
     # aim 3: get physician basic information
-    idx = 19
-    json_string = l[idx]
+    # idx = 19
+    # json_string = l[idx]
+    json_string = [i for i in l if 'ROOT_QUERY' in i][0]
     x = json_string.replace('<!--', '').replace('-->', '')
     # x = x.replace('&quot;', '"')
     x = html.unescape(x)
@@ -290,6 +295,7 @@ def get_physician_info_from_yelp_url(ph_url):
     return physician_info
 
 
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -355,7 +361,8 @@ if __name__ == '__main__':
                         'containerBusiness', 'serviceArea({"userType":"consumer"})', 'claimability({"useConsumerClaimability":true})', 
                         'claimability', 'hasClaimReminderForCurrentUser', 'alternateNames', 'priceRange', 'logo', 'closedUntil', 
                         'primaryPhoto', 'specialties', 'history', 'pageTitle', 'metaDescription', 'encid', 'reviews_detailed',
-                        'blocked_reviews_num', 'blocked_reviews', 'removed_reviews_num', 'removed_reviews']
+                        'blocked_reviews_num', 'blocked_reviews', 'removed_reviews_num', 'removed_reviews', 
+                        'url', 'clct_time']
 
                 Result = pd.DataFrame(columns = cols)
                 # Result.to_pickle(chunk_file)
@@ -383,6 +390,7 @@ if __name__ == '__main__':
                 print('Encounter the error {}. \nGo to next one...'.format(str(e)))
                 error_list.append({'idx':idx, 'url':url, 'error': str(e), 'time': str(datetime.now())})
                 pd.DataFrame(error_list).to_csv(Error_Output_path)
+                continue
 
             doc_info['url'] = url
             doc_info['clct_time'] = datetime.now()
