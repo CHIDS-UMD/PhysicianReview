@@ -16,13 +16,14 @@ import random
 from datetime import datetime
 
 
+
 headers = {
     "Connection": "keep-alive",
     "Cache-Control": "max-age=0",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
 }
-min_sec = 0
+
 
 
 def scrape_under_cloudflare_with_2captcha(url, 
@@ -94,18 +95,26 @@ def get_physician_info_from_ratemd_url(ph_url, headers, min_sec, provider, api_k
     js_texts = [i for i in js_texts]
 
     # step 1:
-    json_string = [i for i in js_texts if 'aggregateRating' in i][0]
+    # idx = 14
+    json_string = [i for i in js_texts if '"@context"' in i][0]
     # print(json_string)
     data = json.loads(json_string)
 
 
-    ratingCount = int(data['aggregateRating']['ratingCount'])
+    if 'aggregateRating' in data:
+        ratingCount = int(data['aggregateRating']['ratingCount'])
+    else:
+        ratingCount = 0
 
     for col in ['address', 'image', 'name', 'telephone']:
         doc_info[col] = data[col]
-        
-    for col in ['bestRating', 'ratingCount', 'ratingValue']:
-        doc_info[col] = float(data['aggregateRating'][col])
+
+    if ratingCount != 0:
+        for col in ['bestRating', 'ratingCount', 'ratingValue']:
+            doc_info[col] = float(data['aggregateRating'][col])
+    else:
+        doc_info['ratingCount'] = 0.
+
 
     # step 2:
     # idx = 19
@@ -119,12 +128,14 @@ def get_physician_info_from_ratemd_url(ph_url, headers, min_sec, provider, api_k
     for k, v in doctor_json.items():
         doc_info[k] = v
 
-    reviews = get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider,  api_key )
-    doc_info['reviews'] = reviews
+    if ratingCount != 0:
+        reviews = get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider,  api_key )
+        doc_info['reviews'] = reviews
+    else:
+        doc_info['reviews'] = []
 
     return doc_info
 
-    
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
