@@ -11,6 +11,7 @@ import random
 from datetime import datetime
 
 
+
 # we need headers to disguise our bot as a browser
 
 headers = {
@@ -47,7 +48,7 @@ def decompose_jQuery(d, x):
             
         elif type(v) == str:
             # print('v is a string')
-            if v[0] == '$':
+            if v[0] == '$' and v in x:
                 # print(v)
                 # print(v, 'v is start from $')
                 d[k] = x[v]
@@ -139,7 +140,7 @@ def get_blocked_reviews_from_ph_url(ph_url):
     if blocked_reviews_num <= 10:
         return d
     else:
-        for i in range(1, int((blocked_reviews_num-1)/10) + 1):
+        for i in range(1, int((blocked_reviews_num)/10) + 1):
             start = i*10
             # print(start)
             url = 'https://www.yelp.com/not_recommended_reviews/{}?not_recommended_start={}'.format(doc_name, start)
@@ -170,23 +171,26 @@ def get_physician_info_from_yelp_url(ph_url):
 
     # aim 1: get common questions
     # idx = 14
-    # json_string = l[idx]
-    json_string = [i for i in l if 'mainEntity' in i][0]
-    try:
+    json_list = [i for i in l if 'mainEntity' in i]
+    if len(json_list) == 1:
+        json_string = json_list[0]
         d = json.loads(json_string)
-        physician_info['Questions'] = d
-    except:
-        print(json_string)
+    else:
+        d = {}
+    physician_info['Questions'] = d
 
-
+    
     # aim 2: get reviewCount
-    # idx = 16
-    # json_string = l[idx]
-    json_string = [i for i in l if 'aggregateRating' in i][0]
-    d = json.loads(json_string)
-    review1_d = d
-    # pprint(review1_d)
-    reviewCount = review1_d['aggregateRating']['reviewCount']
+    json_list = [i for i in l if 'LocalBusiness' in i and 'name' in i]
+    if len(json_list) == 1:
+        json_string = json_list[0]
+        d = json.loads(json_string)
+        if 'aggregateRating' in d:
+            reviewCount = d['aggregateRating']['reviewCount']
+        else:
+            reviewCount = 0
+    else:
+        reviewCount = 0
     physician_info['reviewCount'] = reviewCount
 
 
@@ -201,7 +205,8 @@ def get_physician_info_from_yelp_url(ph_url):
     x = json.loads(x)
 
     # aim 3.1: business photos
-    BusinessPhotos = [x[i]['url({"size":"SQUARE_LARGE"})'] for i in x if '$BusinessPhoto' in i]
+    BusinessPhotos = [[i for i in x[i].values() if 'http' in i]  for i in x if '$BusinessPhoto' in i]
+    BusinessPhotos = [i[0] for i in BusinessPhotos  if len(i) == 1] 
     physician_info['BusinessPhotos'] = BusinessPhotos
 
     # aim 3.2: get buzid info
@@ -274,7 +279,7 @@ def get_physician_info_from_yelp_url(ph_url):
     physician_info['encid'] = encid
     
     L = []
-    for i in range(int((reviewCount -1 )/10) + 1):
+    for i in range(int((reviewCount)/10) + 1):
         start = i * 10
         url = 'https://www.yelp.com/biz/{}/review_feed?rl=en&q=&sort_by=date_desc&start={}'.format(encid, start)
         r = requests.get(url, headers = headers)
@@ -290,10 +295,8 @@ def get_physician_info_from_yelp_url(ph_url):
     # aim 5: get blocked reivews
     d = get_blocked_reviews_from_ph_url(ph_url)
     for k, v in d.items(): physician_info[k] = v
-        
     
     return physician_info
-
 
 
 if __name__ == '__main__':
