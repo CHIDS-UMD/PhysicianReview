@@ -9,7 +9,7 @@ import html
 import argparse
 import random
 from datetime import datetime
-
+import time
 
 
 # we need headers to disguise our bot as a browser
@@ -62,6 +62,7 @@ def decompose_jQuery(d, x):
 
 def process_reviewxpath(review):
 
+
     item2xpath = {
         'image': './/img[@class="photo-box-img"]/@src',
         'user_name': './/*[@class="user-display-name"]/text()',
@@ -74,13 +75,13 @@ def process_reviewxpath(review):
     }
 
     itemselector2value = {
-        'image': lambda x: x.extract()[0],
-        'user_name': lambda x: x.extract()[0],
-        'user_location': lambda x: x.extract()[0],
-        'friends': lambda x: x.extract()[0],
-        'reviews': lambda x: x.extract()[0],
-        'rate_score': lambda x: x.extract()[0],
-        'date': lambda x: x.extract()[0].strip(),
+        'image': lambda x: x.extract()[0] if len(x) == 1 else None,
+        'user_name': lambda x: x.extract()[0] if len(x) == 1 else None,
+        'user_location': lambda x: x.extract()[0] if len(x) == 1 else None,
+        'friends': lambda x: x.extract()[0] if len(x) == 1 else None,
+        'reviews': lambda x: x.extract()[0] if len(x) == 1 else None,
+        'rate_score': lambda x: x.extract()[0] if len(x) == 1 else None,
+        'date': lambda x: x.extract()[0].strip() if len(x) == 1 else None,
         'comment': lambda x: html.unescape('\n'.join(x.extract())).replace('\xa0',''),
     }
 
@@ -153,6 +154,7 @@ def get_blocked_reviews_from_ph_url(ph_url):
             # d['removed_reviews'] += new_d['removed_reviews']
             # print()
             # print(new_d['removed_reviews'])
+            time.sleep(1)
         return d
 
 
@@ -289,6 +291,7 @@ def get_physician_info_from_yelp_url(ph_url):
 
         reviews = response.json()
         L.extend(reviews['reviews'])
+        time.sleep(1)
 
     physician_info['reviews_detailed'] = L
 
@@ -306,9 +309,13 @@ if __name__ == '__main__':
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
+    parser.add_argument('--angry_flag', type=int, default=10, help=' ')
     parser.add_argument('--chunk', type=int, default=500, help=' ')
     args = parser.parse_args()
     
+
+    angry_flag = args.angry_flag
+
     start = args.start 
     end = args.length + start
     
@@ -317,10 +324,14 @@ if __name__ == '__main__':
     
     name = 'yelp'
     url_list = df[-df[name].isna()][name].to_list()
+    source_npi_list = df[-df[name].isna()]['NPI'].to_list()
+    
     # print(df.shape)
     # print(len(url_list))
     end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
+    source_npi_list = source_npi_list[start:end]
+    assert len(url_list) == len(source_npi_list)
 
 
     OutputFolder = input_path.replace('.p', '_s{}_e{}'.format(start, end)).replace('Data', 'Output')
@@ -343,6 +354,8 @@ if __name__ == '__main__':
     error_list = []
 
     min_sec = 1
+    angry_events = 0
+    old_idx = 0
     for idx, urls in enumerate(url_list):
 
         # current url's chunk_id
@@ -351,6 +364,7 @@ if __name__ == '__main__':
         new_e = start + (chunk_id+1)*chunk if start + (chunk_id+1)*chunk < end else end
         chunk_name = '{}_s{}_e{}.p'.format(name, new_s,  new_e)
         chunk_file = os.path.join(OutputFolder, chunk_name)
+        source_npi = source_npi_list[idx]
 
         # generate Results
         if idx % chunk == 0:
@@ -365,7 +379,7 @@ if __name__ == '__main__':
                         'claimability', 'hasClaimReminderForCurrentUser', 'alternateNames', 'priceRange', 'logo', 'closedUntil', 
                         'primaryPhoto', 'specialties', 'history', 'pageTitle', 'metaDescription', 'encid', 'reviews_detailed',
                         'blocked_reviews_num', 'blocked_reviews', 'removed_reviews_num', 'removed_reviews', 
-                        'url', 'clct_time']
+                        'url', 'clct_time', 'source_npi']
 
                 Result = pd.DataFrame(columns = cols)
                 # Result.to_pickle(chunk_file)
@@ -393,11 +407,22 @@ if __name__ == '__main__':
                 print('Encounter the error {}. \nGo to next one...'.format(str(e)))
                 error_list.append({'idx':idx, 'url':url, 'error': str(e), 'time': str(datetime.now())})
                 pd.DataFrame(error_list).to_csv(Error_Output_path)
+                if old_idx == idx - 1:
+                    angry_events += 1
+                else:
+                    angry_events = 1
+                # update old_idx
+
+                print('Last Error occur at idx:', old_idx)
+                old_idx = idx
+                if angry_events >= angry_flag:
+                    raise(ValueError('Stop here, Yelp is angry!'))
+                
                 continue
 
             doc_info['url'] = url
             doc_info['clct_time'] = datetime.now()
-
+            doc_info['source_npi'] = source_npi
             
             try:
                 Result2 = Result.append(doc_info, ignore_index=True)
@@ -420,7 +445,7 @@ if __name__ == '__main__':
 
             print('Save data to: {}'.format(chunk_file))
             
-            second = random.randrange(3, 6)
+            second = random.randrange(6, 8)
             time.sleep(second)
 
             e = datetime.now()
