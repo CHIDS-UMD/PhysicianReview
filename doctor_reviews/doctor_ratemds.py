@@ -160,10 +160,13 @@ if __name__ == '__main__':
     
     name = 'ratemds'
     url_list = df[-df[name].isna()][name].to_list()
+    source_npi_list = df[-df[name].isna()]['NPI'].to_list()
     # print(df.shape)
     # print(len(url_list))
     end = len(url_list) if len(url_list) < end else end
     url_list = url_list[start:end]
+    source_npi_list = source_npi_list[start:end]
+    assert len(url_list) == len(source_npi_list)
 
 
     OutputFolder = input_path.replace('.p', '_s{}_e{}'.format(start, end)).replace('Data', 'Output')
@@ -194,6 +197,7 @@ if __name__ == '__main__':
         new_e = start + (chunk_id+1)*chunk if start + (chunk_id+1)*chunk < end else end
         chunk_name = '{}_s{}_e{}.p'.format(name, new_s,  new_e)
         chunk_file = os.path.join(OutputFolder, chunk_name)
+        source_npi = source_npi_list[idx]
 
         # generate Results
         if idx % chunk == 0:
@@ -215,7 +219,7 @@ if __name__ == '__main__':
                         'appointments_message', 'appointments_thank_you_message', 'accepting_virtual_appointments',
                         'gallery_enabled', 'ratings_disabled', 'specialty_name_plural', 'force_login', 'vanity_specialty',
                         'doctor_alert', 'rankings', 'geocode_address', 'location_url', 'reviews', 
-                        'url', 'clct_time']
+                        'url', 'clct_time', 'source_npi']
 
                 Result = pd.DataFrame(columns = cols)
                 # Result.to_pickle(chunk_file)
@@ -247,7 +251,7 @@ if __name__ == '__main__':
 
             doc_info['url'] = url
             doc_info['clct_time'] = datetime.now()
-
+            doc_info['source_npi'] = source_npi
             
             try:
                 Result2 = Result.append(doc_info, ignore_index=True)
