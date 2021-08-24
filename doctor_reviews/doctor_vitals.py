@@ -35,15 +35,14 @@ def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10):
         response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
 
         if 'Cloudflare to restrict access' not in str(response.body.decode()):
-            print("\tSucc: {}".format(url))
+            print("\tSucc!!!")
             break
         else:
-            print("\tFail: {}".format(url))
+            print("\tFail...")
             second = random.randrange(min_sec, min_sec + 1)
             time.sleep(second)
             
     return response
-
 
 def process_Json(response):
     xpath = './/script//text()'
@@ -194,16 +193,6 @@ if __name__ == '__main__':
     for file in pkl_files:
         print('\n' + file )
 
-
-    # get collected urls:
-    # if len(pkl_files) > 0:
-    #     collected_NPIs = pd.concat([pd.read_pickle(file) for file in pkl_files])['url'].to_list()
-    # else:
-    #     collected_NPIs = []
-
-
-    # print('\n\nCollected url {}'.format(len(collected_NPIs)))
-    
     chunk = int(args.chunk)
     ## Loop the doctors
     error_list = []
