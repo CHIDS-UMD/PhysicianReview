@@ -22,6 +22,15 @@ headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
 }
+        
+def get_review(review_selector):
+    d = {}
+    d['comment'] = review_selector.xpath('.//*[@itemprop="reviewBody"]//span/text()').extract_first()
+    d['date'] = review_selector.xpath('.//*[@itemprop="datePublished"]/text()').extract_first()
+    d['patientName'] = review_selector.xpath('.//*[@itemprop="author"]/text()').extract_first()
+    d['patient_type'] = review_selector.xpath('.//*[@data-test="review-source"]/text()').extract_first()
+    d['overallRating'] = review_selector.xpath('.//*[@data-test="stars-svg-wrapper"]/svg/@data-rating').extract_first()
+    return d
 
 def get_complete_reviews_from_selenium(url, reviewCount, REVIEW_PER_PAGE, webdriver_path):
     options = webdriver.ChromeOptions()
@@ -39,14 +48,15 @@ def get_complete_reviews_from_selenium(url, reviewCount, REVIEW_PER_PAGE, webdri
     
     xpath = './/button[@data-test="reviews-read-more-button"]'
     
-    for idx in range(int(reviewCount / REVIEW_PER_PAGE )):
+    for _ in range(int(reviewCount / REVIEW_PER_PAGE )):
         more_result_button = driver.find_element_by_xpath(xpath)
-        print('{}+ ...'.format((idx +1) * REVIEW_PER_PAGE))
+        print(more_result_button)
         driver.execute_script("arguments[0].click();", more_result_button)
         time.sleep(1)
         
     response = HtmlResponse(driver.current_url, body=driver.page_source, encoding='utf-8')
     reviews = response.xpath('//div[@itemprop="reviews"]')
+    reviews = [get_review(i) for i in reviews]
     # len(reviews)
     driver.quit()
     return reviews
@@ -54,7 +64,7 @@ def get_complete_reviews_from_selenium(url, reviewCount, REVIEW_PER_PAGE, webdri
 
 def get_physician_info_from_zocdoc_url(ph_url, REVIEW_PER_PAGE, webdriver_path, use_webdriver):
     doc_info = {}
-
+    
     r = requests.get('http://localhost:8050/render.html', params={'url': ph_url, 'wait':0})
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
     
@@ -117,8 +127,12 @@ def get_physician_info_from_zocdoc_url(ph_url, REVIEW_PER_PAGE, webdriver_path, 
 
         print('\nReviews: reported {} vs collected {}'.format(reviewCount, len(reviews)))
         if len(reviews) == reviewCount: doc_info['complete_reviews'] = True 
+        
+        doc_info['reviews'] = reviews
     
     return doc_info
+
+
 
    
 
@@ -235,7 +249,7 @@ if __name__ == '__main__':
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
                 doc_info = get_physician_info_from_zocdoc_url(url, REVIEW_PER_PAGE, webdriver_path, use_webdriver)
-                print('doctor name is: {}'.format(doc_info['name']))
+                print('doctor name is: {}'.format(doc_info['approvedFullName']))
             
             except Exception as e:
                 print('Encounter the error {}. \nGo to next one...'.format(str(e)))
@@ -247,6 +261,15 @@ if __name__ == '__main__':
             doc_info['clct_time'] = datetime.now()
             doc_info['source_npi'] = source_npi
             
+            print('Reviews: reported {} vs collected {}'.format(doc_info['reviewCount'], len(doc_info['reviews'])))
+
+
+            Result2 = Result.append(doc_info, ignore_index=True)
+            Result2.to_pickle(chunk_file.replace('.', '_tmp.'))
+            Result2 = pd.read_pickle(chunk_file.replace('.', '_tmp.'))
+            os.remove(chunk_file.replace('.', '_tmp.'))
+
+
             try:
                 Result2 = Result.append(doc_info, ignore_index=True)
                 Result2.to_pickle(chunk_file.replace('.', '_tmp.'))
@@ -262,8 +285,7 @@ if __name__ == '__main__':
             Result = Result.append(doc_info, ignore_index=True)
             Result.to_pickle(chunk_file)
 
-            print('Reviews: reported {} vs collected {}'.format(int(doc_info['ratingCount']), len(doc_info['reviews'])))
-  
+            
             print('Save data to: {}'.format(chunk_file))
             
             second = random.randrange(3, 6)
