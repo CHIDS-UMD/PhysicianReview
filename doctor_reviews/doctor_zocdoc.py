@@ -151,7 +151,11 @@ if __name__ == '__main__':
     parser.add_argument('--provider', type=str, default='500', help=' ')
     parser.add_argument('--api_key', type=str, default='500', help=' ')
     parser.add_argument('--use_webdriver', type=bool, default=True, help=' ')
+    parser.add_argument('--angry_flag', type=int, default=10, help=' ')
     args = parser.parse_args()
+
+
+    angry_flag = args.angry_flag
     
     # provider, api_key
     use_webdriver = args.use_webdriver
@@ -195,6 +199,8 @@ if __name__ == '__main__':
     error_list = []
 
     min_sec = 1
+    angry_events = 0
+    old_idx = 0
     for idx, urls in enumerate(url_list):
 
         # current url's chunk_id
@@ -255,6 +261,17 @@ if __name__ == '__main__':
                 print('Encounter the error {}. \nGo to next one...'.format(str(e)))
                 error_list.append({'idx':idx, 'url':url, 'error': str(e), 'time': str(datetime.now())})
                 pd.DataFrame(error_list).to_csv(Error_Output_path)
+                if old_idx == idx - 1:
+                    angry_events += 1
+                else:
+                    angry_events = 1
+                # update old_idx
+
+                print('Last Error occur at idx:', old_idx)
+                old_idx = idx
+                if angry_events >= angry_flag:
+                    raise(ValueError('Stop here, Zocdoc is angry!'))
+                
                 continue
 
             doc_info['url'] = url
