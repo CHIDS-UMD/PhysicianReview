@@ -44,9 +44,14 @@ def scrape_under_cloudflare_with_2captcha(url,
         try:
             r = scraper.get(url, headers = headers, timeout = 10)
             response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
-            print(response.text)
-            print("\tSucc!!!")
-            break
+            # print(response.text)
+            if 'Access denied | www.ratemds.com used Cloudflare to restrict access' not in response.text:
+                print("\tSucc!!!")
+                break
+            else:
+                print("\tFail...")
+                second = random.randrange(min_sec, min_sec + 1)
+                time.sleep(second)
             
         except:
             print("\tFail...")
