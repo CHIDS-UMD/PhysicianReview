@@ -318,6 +318,9 @@ if __name__ == '__main__':
             Result.to_pickle(chunk_file)
             print('Save data to: {}'.format(chunk_file))
             
+            second = random.randrange(3, 6)
+            time.sleep(second)
+            
             e = datetime.now()
             current_time_usage = e - s
             total_sec += current_time_usage.total_seconds()
