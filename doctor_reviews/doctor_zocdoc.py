@@ -39,7 +39,7 @@ def get_complete_reviews_from_selenium(url, reviewCount, REVIEW_PER_PAGE, webdri
     options.add_argument("--disable-extensions")
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--incognito')
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
 
     driver = webdriver.Chrome(webdriver_path, options=options)
     driver.get(url)
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('--chunk', type=int, default=500, help=' ')
     parser.add_argument('--provider', type=str, default='500', help=' ')
     parser.add_argument('--api_key', type=str, default='500', help=' ')
-    parser.add_argument('--use_webdriver', type=bool, default=True, help=' ')
+    parser.add_argument('--use_webdriver', type=int, default=0, help=' ')
     parser.add_argument('--angry_flag', type=int, default=10, help=' ')
     args = parser.parse_args()
 
@@ -158,7 +158,8 @@ if __name__ == '__main__':
     angry_flag = args.angry_flag
     
     # provider, api_key
-    use_webdriver = args.use_webdriver
+    use_webdriver = True if args.use_webdriver == 1 else False
+    # print(use_webdriver, type(use_webdriver))
     provider = args.provider
     api_key = args.api_key
     
