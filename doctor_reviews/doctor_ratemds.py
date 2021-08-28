@@ -44,6 +44,7 @@ def scrape_under_cloudflare_with_2captcha(url,
         try:
             r = scraper.get(url, headers = headers, timeout = 10)
             response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
+            print(response.text)
             print("\tSucc!!!")
             break
             
