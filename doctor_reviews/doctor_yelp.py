@@ -167,7 +167,7 @@ def get_blocked_reviews_from_ph_url(ph_url):
             # d['removed_reviews'] += new_d['removed_reviews']
             # print()
             # print(new_d['removed_reviews'])
-            second = random.randrange(0,3)
+            second = random.randrange(3,10)
             time.sleep(second)
         return d
 
@@ -310,13 +310,13 @@ def get_physician_info_from_yelp_url(ph_url):
 
         reviews = response.json()
         L.extend(reviews['reviews'])
-        second = random.randrange(0,3)
+        second = random.randrange(3,10)
         time.sleep(second)
 
     physician_info['reviews_detailed'] = L
 
     # aim 5: get blocked reivews
-    second = random.randrange(0,3)
+    second = random.randrange(3,10)
     time.sleep(second)
     d = get_blocked_reviews_from_ph_url(ph_url)
     for k, v in d.items(): physician_info[k] = v
