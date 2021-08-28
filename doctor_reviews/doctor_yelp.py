@@ -2,7 +2,6 @@ import os
 import requests
 import pandas as pd
 import time
-import requests
 from scrapy.http import TextResponse
 import json
 import html
@@ -10,7 +9,7 @@ import argparse
 import random
 from datetime import datetime
 import time
-
+import cloudscraper
 
 # we need headers to disguise our bot as a browser
 
@@ -23,6 +22,15 @@ import time
 
 headers = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
 
+
+# scraper = cloudscraper.create_scraper(
+#     interpreter='nodejs',
+#     captcha={
+#         'provider': provider,
+#         'api_key': api_key,
+#     }
+# )
+scraper = cloudscraper.create_scraper()
 
 
 
@@ -133,7 +141,8 @@ def get_blocked_reviews_from_ph_url(ph_url):
     doc_name = ph_url.split('/')[-1]
     start = 0
     url = 'https://www.yelp.com/not_recommended_reviews/{}?not_recommended_start={}'.format(doc_name, start)
-    r = requests.get(url, headers = headers)
+    # r = requests.get(url, headers = headers)
+    r = scraper.get(url, headers = headers, timeout = 10)
     print(r.url)
     # load the text to scrapy-type response
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -148,7 +157,8 @@ def get_blocked_reviews_from_ph_url(ph_url):
             start = i*10
             # print(start)
             url = 'https://www.yelp.com/not_recommended_reviews/{}?not_recommended_start={}'.format(doc_name, start)
-            r = requests.get(url, headers = headers)
+            # r = requests.get(url, headers = headers)
+            r = scraper.get(url, headers = headers, timeout = 10)
             print(r.url)
             # load the text to scrapy-type response
             response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -168,7 +178,10 @@ def get_physician_info_from_yelp_url(ph_url):
     
     # profile url
     url = ph_url
-    r = requests.get(url, headers = headers)
+
+    # r = requests.get(url, headers = headers)
+    # r = requests.get('http://localhost:8050/render.html', params={'url': ph_url, 'wait':0.5})
+    r = scraper.get(url, headers = headers, timeout = 10)
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
     xpath = './/script//text()'
     selectors = response.xpath(xpath)
@@ -288,7 +301,8 @@ def get_physician_info_from_yelp_url(ph_url):
     for i in range(int((reviewCount)/10) + 1):
         start = i * 10
         url = 'https://www.yelp.com/biz/{}/review_feed?rl=en&q=&sort_by=date_desc&start={}'.format(encid, start)
-        r = requests.get(url, headers = headers)
+        # r = requests.get(url, headers = headers)
+        r = scraper.get(url, headers = headers, timeout = 10)
         print(r.url)
         # load the text to scrapy-type response
         response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -368,9 +382,9 @@ if __name__ == '__main__':
     total_start_time = datetime.now()
     for idx, urls in enumerate(url_list):
 
-        if idx % 200 == 0:
-            second = random.randrange(60, 80)
-            time.sleep(second)
+        # if idx % 200 == 0:
+        #     second = random.randrange(60, 80)
+        #     time.sleep(second)
 
         # current url's chunk_id
         chunk_id = int(idx / chunk)
