@@ -262,7 +262,7 @@ if __name__ == '__main__':
                 continue 
 
             # case 2
-            s = datetime.now()
+            
         
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
@@ -284,11 +284,12 @@ if __name__ == '__main__':
                 print('We need to collect more reviews: {} vs {}'.format(len(doc_info['reviews']), reviewCount))
                 reviews = get_healthgraders_reviews(url, reviewCount)  
                 commentIds = [i['commentId'] for i in doc_info['reviews']]
-                for ind, commentId in enumerate(commentIds):
+
+                # for ind, commentId in enumerate(commentIds):
                     # print(commentId)
-                    commentId_new = reviews[ind]['commentId']
+                    # commentId_new = reviews[ind]['commentId']
                     # print(b)
-                    assert commentId == commentId_new
+                    # assert commentId == commentId_new
 
                 if len(reviews) != reviewCount:
                     print('Reported reviews {} is not equal to collected reviews {}'.format(reviewCount, len(reviews)))
@@ -316,9 +317,6 @@ if __name__ == '__main__':
             Result = Result.append(doc_info, ignore_index=True)
             Result.to_pickle(chunk_file)
             print('Save data to: {}'.format(chunk_file))
-            
-            second = random.randrange(3, 6)
-            time.sleep(second)
 
             e = datetime.now()
             current_time_usage = e - s
@@ -327,5 +325,9 @@ if __name__ == '__main__':
             current_time = datetime.now()
             total_time_used = current_time - total_start_time
             print('CurrentTime: {}; Time Used: {}; Succ URL: {}; Avg Time: {}; Total Time {}'.format(current_time, current_time_usage, succ_url, round(total_sec/succ_url, 4), total_time_used) )
+
+            second = random.randrange(3, 6)
+            time.sleep(second)
+            s = datetime.now()
     
         
