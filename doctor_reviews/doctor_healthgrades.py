@@ -219,6 +219,8 @@ if __name__ == '__main__':
     total_sec = 0
     succ_url = 0
     total_start_time = datetime.now()
+
+    s = datetime.now()
     for idx, urls in enumerate(url_list):
 
         # current url's chunk_id
