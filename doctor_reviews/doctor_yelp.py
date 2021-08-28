@@ -183,7 +183,7 @@ def get_physician_info_from_yelp_url(ph_url):
     # r = requests.get('http://localhost:8050/render.html', params={'url': ph_url, 'wait':0.5})
     r = scraper.get(url, headers = headers, timeout = 10)
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
-    print(response.text)
+    # print(response.text)
     xpath = './/script//text()'
     selectors = response.xpath(xpath)
     js_list = selectors.extract()
