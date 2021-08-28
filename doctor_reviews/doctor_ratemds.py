@@ -143,7 +143,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
-    parser.add_argument('--chunk', type=int, default=500, help=' ')
+    parser.add_argument('--chunk', type=int, default=100, help=' ')
     parser.add_argument('--provider', type=str, default='500', help=' ')
     parser.add_argument('--api_key', type=str, default='500', help=' ')
     args = parser.parse_args()
@@ -187,7 +187,8 @@ if __name__ == '__main__':
     chunk = int(args.chunk)
     ## Loop the doctors
     error_list = []
-
+    total_sec = 0
+    succ_url = 0
     min_sec = 1
     for idx, urls in enumerate(url_list):
 
@@ -276,5 +277,8 @@ if __name__ == '__main__':
             time.sleep(second)
 
             e = datetime.now()
-            print('Time Used:', e - s )
+            current_time_usage = e - s
+            total_sec += current_time_usage.total_seconds()
+            succ_url +=1
+            print('Time Used: {}; Succ URL: {}; Avg Time: {}'.format(current_time_usage, succ_url, round(total_sec/succ_url, 4)) )
     

@@ -159,7 +159,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_path', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
-    parser.add_argument('--chunk', type=int, default=500, help=' ')
+    parser.add_argument('--chunk', type=int, default=100, help=' ')
     parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     args = parser.parse_args()
     
@@ -216,6 +216,8 @@ if __name__ == '__main__':
 
     # old_chunk_id = -1 # the first one is 0.
     # empty_Result = True
+    total_sec = 0
+    succ_url = 0
     
     for idx, urls in enumerate(url_list):
 
@@ -319,6 +321,9 @@ if __name__ == '__main__':
             time.sleep(second)
 
             e = datetime.now()
-            print('Time Used:', e - s )
-
+            current_time_usage = e - s
+            total_sec += current_time_usage.total_seconds()
+            succ_url +=1
+            print('Time Used: {}; Succ URL: {}; Avg Time: {}'.format(current_time_usage, succ_url, round(total_sec/succ_url, 4)) )
+    
         

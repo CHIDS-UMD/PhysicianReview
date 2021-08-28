@@ -196,7 +196,8 @@ if __name__ == '__main__':
     chunk = int(args.chunk)
     ## Loop the doctors
     error_list = []
-
+    total_sec = 0
+    succ_url = 0
     min_sec = 1
     for idx, urls in enumerate(url_list):
 
@@ -279,7 +280,10 @@ if __name__ == '__main__':
             time.sleep(second)
 
             e = datetime.now()
-            print('Time Used:', e - s )
-
+            current_time_usage = e - s
+            total_sec += current_time_usage.total_seconds()
+            succ_url +=1
+            print('Time Used: {}; Succ URL: {}; Avg Time: {}'.format(current_time_usage, succ_url, round(total_sec/succ_url, 4)) )
+            
 
     

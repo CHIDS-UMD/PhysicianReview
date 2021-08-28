@@ -39,7 +39,7 @@ def get_complete_reviews_from_selenium(url, reviewCount, REVIEW_PER_PAGE, webdri
     options.add_argument("--disable-extensions")
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--incognito')
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
 
     driver = webdriver.Chrome(webdriver_path, options=options)
     driver.get(url)
@@ -201,6 +201,8 @@ if __name__ == '__main__':
     min_sec = 1
     angry_events = 0
     old_idx = 0
+    total_sec = 0
+    succ_url = 0
     for idx, urls in enumerate(url_list):
 
         # current url's chunk_id
@@ -309,5 +311,8 @@ if __name__ == '__main__':
             time.sleep(second)
 
             e = datetime.now()
-            print('Time Used:', e - s )
+            current_time_usage = e - s
+            total_sec += current_time_usage.total_seconds()
+            succ_url +=1
+            print('Time Used: {}; Succ URL: {}; Avg Time: {}'.format(current_time_usage, succ_url, round(total_sec/succ_url, 4)) )
     

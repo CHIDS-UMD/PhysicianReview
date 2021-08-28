@@ -14,12 +14,15 @@ import time
 
 # we need headers to disguise our bot as a browser
 
-headers = {
-    "Connection": "keep-alive",
-    "Cache-Control": "max-age=0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
-}
+# headers = {
+#     "Connection": "keep-alive",
+#     "Cache-Control": "max-age=0",
+#     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+#     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36",
+# }
+
+headers = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
+
 
 
 
@@ -296,6 +299,7 @@ def get_physician_info_from_yelp_url(ph_url):
     physician_info['reviews_detailed'] = L
 
     # aim 5: get blocked reivews
+    time.sleep(1)
     d = get_blocked_reviews_from_ph_url(ph_url)
     for k, v in d.items(): physician_info[k] = v
     
@@ -356,6 +360,8 @@ if __name__ == '__main__':
     min_sec = 1
     angry_events = 0
     old_idx = 0
+    total_sec = 0
+    succ_url = 0
     for idx, urls in enumerate(url_list):
 
         # current url's chunk_id
@@ -449,5 +455,8 @@ if __name__ == '__main__':
             time.sleep(second)
 
             e = datetime.now()
-            print('Time Used:', e - s )
+            current_time_usage = e - s
+            total_sec += current_time_usage.total_seconds()
+            succ_url +=1
+            print('Time Used: {}; Succ URL: {}; Avg Time: {}'.format(current_time_usage, succ_url, round(total_sec/succ_url, 4)) )
     
