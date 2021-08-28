@@ -219,8 +219,6 @@ if __name__ == '__main__':
     total_sec = 0
     succ_url = 0
     total_start_time = datetime.now()
-
-    s = datetime.now()
     for idx, urls in enumerate(url_list):
 
         # current url's chunk_id
@@ -264,7 +262,7 @@ if __name__ == '__main__':
                 continue 
 
             # case 2
-            
+            s = datetime.now()
         
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
@@ -319,7 +317,7 @@ if __name__ == '__main__':
             Result = Result.append(doc_info, ignore_index=True)
             Result.to_pickle(chunk_file)
             print('Save data to: {}'.format(chunk_file))
-
+            
             e = datetime.now()
             current_time_usage = e - s
             total_sec += current_time_usage.total_seconds()
@@ -328,8 +326,5 @@ if __name__ == '__main__':
             total_time_used = current_time - total_start_time
             print('CurrentTime: {}; Time Used: {}; Succ URL: {}; Avg Time: {}; Total Time {}'.format(current_time, current_time_usage, succ_url, round(total_sec/succ_url, 4), total_time_used) )
 
-            second = random.randrange(3, 6)
-            time.sleep(second)
-            s = datetime.now()
     
         
