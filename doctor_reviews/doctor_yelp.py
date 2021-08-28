@@ -368,6 +368,10 @@ if __name__ == '__main__':
     total_start_time = datetime.now()
     for idx, urls in enumerate(url_list):
 
+        if idx % 200 == 0:
+            second = random.randrange(60, 80)
+            time.sleep(second)
+
         # current url's chunk_id
         chunk_id = int(idx / chunk)
         new_s = start + chunk_id*chunk
