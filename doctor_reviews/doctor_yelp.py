@@ -2,6 +2,7 @@ import os
 import requests
 import pandas as pd
 import time
+import requests
 from scrapy.http import TextResponse
 import json
 import html
@@ -10,6 +11,9 @@ import random
 from datetime import datetime
 import time
 import cloudscraper
+from urllib.parse import urlencode
+
+
 
 # we need headers to disguise our bot as a browser
 
@@ -26,10 +30,11 @@ headers = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit
 # scraper = cloudscraper.create_scraper(
 #     interpreter='nodejs',
 #     captcha={
-#         'provider': provider,
-#         'api_key': api_key,
+#     'provider': provider,
+#     'api_key': api_key,
 #     }
 # )
+
 scraper = cloudscraper.create_scraper()
 
 
@@ -137,12 +142,15 @@ def process_xpath(response):
     return d
 
 
-def get_blocked_reviews_from_ph_url(ph_url):
+def get_blocked_reviews_from_ph_url(ph_url, proxyapi):
     doc_name = ph_url.split('/')[-1]
     start = 0
     url = 'https://www.yelp.com/not_recommended_reviews/{}?not_recommended_start={}'.format(doc_name, start)
     # r = requests.get(url, headers = headers)
-    r = scraper.get(url, headers = headers, timeout = 10)
+    # r = scraper.get(url, headers = headers, timeout = 10, proxy = proxy)
+    # r = requests.get(url, headers = headers, proxies=proxies, verify=False)
+    r = requests.get('http://api.scraperapi.com/', params=urlencode({'api_key': proxyapi, 'url': url}))
+
     print(r.url)
     # load the text to scrapy-type response
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -158,7 +166,9 @@ def get_blocked_reviews_from_ph_url(ph_url):
             # print(start)
             url = 'https://www.yelp.com/not_recommended_reviews/{}?not_recommended_start={}'.format(doc_name, start)
             # r = requests.get(url, headers = headers)
-            r = scraper.get(url, headers = headers, timeout = 10)
+            # r = scraper.get(url, headers = headers, timeout = 10)
+            r = requests.get('http://api.scraperapi.com/', params=urlencode({'api_key': proxyapi, 'url': url}))
+
             print(r.url)
             # load the text to scrapy-type response
             response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -167,23 +177,23 @@ def get_blocked_reviews_from_ph_url(ph_url):
             # d['removed_reviews'] += new_d['removed_reviews']
             # print()
             # print(new_d['removed_reviews'])
-            second = random.randrange(3,10)
+            second = random.randrange(0,3)
             time.sleep(second)
         return d
 
 
-def get_physician_info_from_yelp_url(ph_url):
+def get_physician_info_from_yelp_url(ph_url, proxyapi):
 
     physician_info = {}
     
     # profile url
     url = ph_url
 
-    # r = requests.get(url, headers = headers)
+    # r = requests.get(url, headers = headers, proxies=proxies, verify=False)
+    r = requests.get('http://api.scraperapi.com/', params=urlencode({'api_key': proxyapi, 'url': url}))
     # r = requests.get('http://localhost:8050/render.html', params={'url': ph_url, 'wait':0.5})
-    r = scraper.get(url, headers = headers, timeout = 10)
+    # r = scraper.get(url, headers = headers, timeout = 10)
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
-    # print(response.text)
     xpath = './/script//text()'
     selectors = response.xpath(xpath)
     js_list = selectors.extract()
@@ -303,22 +313,24 @@ def get_physician_info_from_yelp_url(ph_url):
         start = i * 10
         url = 'https://www.yelp.com/biz/{}/review_feed?rl=en&q=&sort_by=date_desc&start={}'.format(encid, start)
         # r = requests.get(url, headers = headers)
-        r = scraper.get(url, headers = headers, timeout = 10)
+        # r = scraper.get(url, headers = headers, timeout = 10)
+        # r = requests.get(url, headers = headers, proxies=proxies, verify=False)
+        r = requests.get('http://api.scraperapi.com/', params=urlencode({'api_key': proxyapi, 'url': url}))
         print(r.url)
         # load the text to scrapy-type response
         response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
 
         reviews = response.json()
         L.extend(reviews['reviews'])
-        second = random.randrange(3,10)
+        second = random.randrange(0,3)
         time.sleep(second)
 
     physician_info['reviews_detailed'] = L
 
     # aim 5: get blocked reivews
-    second = random.randrange(3,10)
+    second = random.randrange(0,3)
     time.sleep(second)
-    d = get_blocked_reviews_from_ph_url(ph_url)
+    d = get_blocked_reviews_from_ph_url(ph_url, proxyapi)
     for k, v in d.items(): physician_info[k] = v
     
     return physician_info
@@ -328,20 +340,28 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_path', type = str)
+    parser.add_argument('--input', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
-    parser.add_argument('--angry_flag', type=int, default=10, help=' ')
+    parser.add_argument('--angry', type=int, default=10, help=' ')
     parser.add_argument('--chunk', type=int, default=500, help=' ')
+    parser.add_argument('--proxyapi', type=str, default='None', help=' ')
     args = parser.parse_args()
     
 
-    angry_flag = args.angry_flag
+    angry_flag = args.angry
+    proxyapi = args.proxyapi
+    # if proxyapi != 'None':
+    #     proxies = {
+    #         'http': f'http://scraperapi:{proxyapi}@proxy-server.scraperapi.com:8001',
+    #     }
+    # else:
+    #     proxies = None
 
     start = args.start 
     end = args.length + start
     
-    input_path = args.input_path
+    input_path = args.input
     df = pd.read_pickle(input_path) 
     
     name = 'yelp'
@@ -429,7 +449,7 @@ if __name__ == '__main__':
 
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
-                doc_info = get_physician_info_from_yelp_url(url)
+                doc_info = get_physician_info_from_yelp_url(url, proxyapi)
                 print('doctor name is: {}'.format(doc_info['name']))
             
             except Exception as e:
@@ -474,7 +494,7 @@ if __name__ == '__main__':
 
             print('Save data to: {}'.format(chunk_file))
             
-            second = random.randrange(6, 8)
+            second = random.randrange(1, 3)
             time.sleep(second)
 
             e = datetime.now()
