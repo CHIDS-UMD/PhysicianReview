@@ -31,7 +31,8 @@ def scrape_under_cloudflare_with_2captcha(url,
                                           headers = headers, 
                                           min_sec = 0, 
                                           provider = None,
-                                          api_key = None):
+                                          api_key = None,
+                                          proxyapi = None):
     print("Request url: {}".format(url))
     print(provider)
     print(api_key)
@@ -45,7 +46,11 @@ def scrape_under_cloudflare_with_2captcha(url,
           }
         )
         try:
-            r = scraper.get(url, headers = headers, timeout = 10)
+            if proxyapi:
+                print('proxyapi is {}'.format(proxyapi))
+                r = scraper.get('http://api.scraperapi.com/', headers = headers, timeout = 10, params=urlencode({'api_key': proxyapi, 'url': url}))
+            else:
+                r = scraper.get(url, headers = headers, timeout = 10)
             response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
             # print(response.text)
             if 'Access denied | www.ratemds.com used Cloudflare to restrict access' not in response.text:
@@ -53,11 +58,8 @@ def scrape_under_cloudflare_with_2captcha(url,
                 break
             else:
                 print("\tFail..., but have successful response with cloudflare.")
-                # response
                 second = random.randrange(min_sec, min_sec + 1)
                 time.sleep(second)
-                with open('RateMD_Sample_Blocked.html', 'w') as f:
-                    f.write(str(response.body.decode()))
             
         except:
             print("\tFail...")
@@ -65,6 +67,7 @@ def scrape_under_cloudflare_with_2captcha(url,
             time.sleep(second)
             
     return response
+
 
 
 def get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider,  api_key):
@@ -158,11 +161,13 @@ if __name__ == '__main__':
     parser.add_argument('--chunk', type=int, default=100, help=' ')
     parser.add_argument('--provider', type=str, default='500', help=' ')
     parser.add_argument('--apikey', type=str, default='500', help=' ')
+    parser.add_argument('--proxyapi', type=str, default='500', help=' ')
     args = parser.parse_args()
     
     # provider, api_key
-    provider = args.provider
-    api_key = args.apikey
+    provider = args.provider if args.provider != '500' else None
+    api_key = args.apikey if args.apikey != '500' else None
+    proxyapi = args.proxyapi if args.proxyapi != '500' else None
     
     start = args.start 
     end = args.length + start
@@ -254,7 +259,7 @@ if __name__ == '__main__':
 
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
-                doc_info = get_physician_info_from_ratemd_url(url, headers, min_sec, provider, api_key)
+                doc_info = get_physician_info_from_ratemd_url(url, headers, min_sec, provider, api_key, proxyapi)
                 print('doctor name is: {}'.format(doc_info['name']))
             
             except Exception as e:
