@@ -49,7 +49,7 @@ def scrape_under_cloudflare_with_2captcha(url,
                 print("\tSucc!!!")
                 break
             else:
-                print("\tFail...")
+                print("\tFail..., but have successful response with cloudflare.")
                 second = random.randrange(min_sec, min_sec + 1)
                 time.sleep(second)
             
@@ -146,22 +146,22 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_path', type = str)
+    parser.add_argument('--input', type = str)
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
     parser.add_argument('--chunk', type=int, default=100, help=' ')
     parser.add_argument('--provider', type=str, default='500', help=' ')
-    parser.add_argument('--api_key', type=str, default='500', help=' ')
+    parser.add_argument('--apikey', type=str, default='500', help=' ')
     args = parser.parse_args()
     
     # provider, api_key
     provider = args.provider
-    api_key = args.api_key
+    api_key = args.apikey
     
     start = args.start 
     end = args.length + start
     
-    input_path = args.input_path
+    input_path = args.input
     df = pd.read_pickle(input_path) 
     
     name = 'ratemds'
