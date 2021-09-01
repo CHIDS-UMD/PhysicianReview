@@ -13,7 +13,7 @@ from scrapy.http import HtmlResponse
 from selenium import webdriver
 import time
 from datetime import datetime
-
+from urllib.parse import urlencode
 
 
 headers = {
@@ -62,10 +62,11 @@ def get_complete_reviews_from_selenium(url, reviewCount, REVIEW_PER_PAGE, webdri
     return reviews
 
 
-def get_physician_info_from_zocdoc_url(ph_url, REVIEW_PER_PAGE, webdriver_path, use_webdriver):
+def get_physician_info_from_zocdoc_url(ph_url, REVIEW_PER_PAGE, webdriver_path, use_webdriver, proxyapi):
     doc_info = {}
     
-    r = requests.get('http://localhost:8050/render.html', params={'url': ph_url, 'wait':0})
+    r = requests.get('http://api.scraperapi.com/', params=urlencode({'api_key': proxyapi, 'url': ph_url}))
+    # r = requests.get('http://localhost:8050/render.html', params={'url': ph_url, 'wait':0})
     response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
     
     xpath = './/script//text()'
@@ -133,10 +134,6 @@ def get_physician_info_from_zocdoc_url(ph_url, REVIEW_PER_PAGE, webdriver_path, 
     return doc_info
 
 
-
-   
-
-
 if __name__ == '__main__':
 
     REVIEW_PER_PAGE = 50
@@ -148,20 +145,22 @@ if __name__ == '__main__':
     parser.add_argument('--start',  type=int, default=0, help=' ')
     parser.add_argument('--length', type=int, default=10000, help=' ')
     parser.add_argument('--chunk', type=int, default=500, help=' ')
-    parser.add_argument('--provider', type=str, default='500', help=' ')
-    parser.add_argument('--api_key', type=str, default='500', help=' ')
-    parser.add_argument('--use_webdriver', type=int, default=0, help=' ')
-    parser.add_argument('--angry_flag', type=int, default=10, help=' ')
+    # parser.add_argument('--provider', type=str, default='500', help=' ')
+    # parser.add_argument('--api_key', type=str, default='500', help=' ')
+    parser.add_argument('--webdriver', type=int, default=0, help=' ')
+    parser.add_argument('--angry', type=int, default=10, help=' ')
+    parser.add_argument('--proxyapi', type=str, default='None', help=' ')
     args = parser.parse_args()
 
 
-    angry_flag = args.angry_flag
+    angry_flag = args.angry
+    proxyapi = args.proxyapi
     
     # provider, api_key
-    use_webdriver = True if args.use_webdriver == 1 else False
+    use_webdriver = True if args.webdriver == 1 else False
     # print(use_webdriver, type(use_webdriver))
-    provider = args.provider
-    api_key = args.api_key
+    # provider = args.provider
+    # api_key = args.api_key
     
     start = args.start 
     end = args.length + start
@@ -258,7 +257,7 @@ if __name__ == '__main__':
 
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
-                doc_info = get_physician_info_from_zocdoc_url(url, REVIEW_PER_PAGE, webdriver_path, use_webdriver)
+                doc_info = get_physician_info_from_zocdoc_url(url, REVIEW_PER_PAGE, webdriver_path, use_webdriver, proxyapi)
                 print('doctor name is: {}'.format(doc_info['approvedFullName']))
             
             except Exception as e:
