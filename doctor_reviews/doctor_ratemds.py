@@ -53,8 +53,11 @@ def scrape_under_cloudflare_with_2captcha(url,
                 break
             else:
                 print("\tFail..., but have successful response with cloudflare.")
+                # response
                 second = random.randrange(min_sec, min_sec + 1)
                 time.sleep(second)
+                with open('RateMD_Sample_Blocked.html', 'w') as f:
+                    f.write(str(response.body.decode()))
             
         except:
             print("\tFail...")
