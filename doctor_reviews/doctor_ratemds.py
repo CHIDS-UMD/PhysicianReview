@@ -14,6 +14,7 @@ import json
 import argparse
 import random
 from datetime import datetime
+from urllib.parse import urlencode
 
 
 ## this matters!
@@ -48,7 +49,7 @@ def scrape_under_cloudflare_with_2captcha(url,
         try:
             if proxyapi:
                 print('proxyapi is {}'.format(proxyapi))
-                r = scraper.get('http://api.scraperapi.com/', headers = headers, timeout = 10, params=urlencode({'api_key': proxyapi, 'url': url}))
+                r = scraper.get('http://api.scraperapi.com/', headers = headers, params=urlencode({'api_key': proxyapi, 'url': url}))
             else:
                 r = scraper.get(url, headers = headers, timeout = 10)
             response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -70,7 +71,7 @@ def scrape_under_cloudflare_with_2captcha(url,
 
 
 
-def get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider,  api_key):
+def get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider, api_key, proxyapi):
     L = []
     for page in range(int((ratingCount-1) / 10) + 1):
         # print(page)
@@ -83,7 +84,8 @@ def get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider,  ap
                                                          headers = headers, 
                                                          min_sec = min_sec, 
                                                          provider = provider,
-                                                         api_key = api_key)
+                                                         api_key = api_key,
+                                                         proxyapi = proxyapi)
         # have a look at its body
         # print(str(response.body.decode()))
         reviews = response.json()['results']
@@ -92,7 +94,7 @@ def get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider,  ap
     return L
 
 
-def get_physician_info_from_ratemd_url(ph_url, headers, min_sec, provider, api_key):
+def get_physician_info_from_ratemd_url(ph_url, headers, min_sec, provider, api_key, proxyapi):
 
     doc_info = {}
 
@@ -101,7 +103,8 @@ def get_physician_info_from_ratemd_url(ph_url, headers, min_sec, provider, api_k
                                                         headers = headers, 
                                                         min_sec = min_sec, 
                                                         provider = provider,
-                                                        api_key = api_key)
+                                                        api_key = api_key, 
+                                                        proxyapi = proxyapi)
     
     xpath = './/script//text()'
     selectors = response.xpath(xpath)
@@ -144,7 +147,7 @@ def get_physician_info_from_ratemd_url(ph_url, headers, min_sec, provider, api_k
         doc_info[k] = v
 
     if ratingCount != 0:
-        reviews = get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider,  api_key )
+        reviews = get_reviews_from_ph_url(ph_url, ratingCount, headers, min_sec, provider, api_key, proxyapi )
         doc_info['reviews'] = reviews
     else:
         doc_info['reviews'] = []
