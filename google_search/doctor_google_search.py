@@ -183,6 +183,7 @@ if __name__ == '__main__':
         GoogleResult.to_pickle(Output_path)
         second = random.randrange(0, 5)
         time.sleep(second)
+        print('Sleep {}s, and Save to {}'.format(second, Output_path))
     
     # print(client)
     if flag < angry_flag and client:
