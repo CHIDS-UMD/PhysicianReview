@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
         GoogleResult = GoogleResult.append(d, ignore_index=True)
         GoogleResult.to_pickle(Output_path)
-        second = random.randrange(0, 5)
+        second = random.randrange(4, 8)
         time.sleep(second)
         print('Sleep {}s, and Save to {}'.format(second, Output_path))
     
