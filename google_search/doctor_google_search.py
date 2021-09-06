@@ -57,6 +57,7 @@ def get_doctor_google_result(keyword, pages = 2, timeout = 10):
         url = "https://www.google.com/search?q=%s&start=%s" % (keyword, (page_number)*10)
         # print(url)
         r = requests.get(url, headers=HEADERS, timeout=timeout)
+        print(r.status_code)
         
         # try:
         #     r = requests.get(url, headers=HEADERS, timeout=10)
@@ -69,7 +70,6 @@ def get_doctor_google_result(keyword, pages = 2, timeout = 10):
         # with open('preview.html', 'w') as f:
         #     f.write(str(response.body.decode()))
         
-        
         d = response.selector.xpath('.//div[@class="g"]//div[@data-hveid]//a/@href').extract()
         # pprint(d)
         d = [i for i in d if 'http' in i and 'googleusercontent' not in i and 'translate.google.com' not in i]
@@ -77,6 +77,9 @@ def get_doctor_google_result(keyword, pages = 2, timeout = 10):
         print('From ULR {}'.format(url))
         print('Get {} results'.format(len(d)))
         searched_urls = searched_urls + d
+
+        second = random.randrange(0, 4)
+        time.sleep(second)
         
     return searched_urls
 
@@ -181,7 +184,7 @@ if __name__ == '__main__':
 
         GoogleResult = GoogleResult.append(d, ignore_index=True)
         GoogleResult.to_pickle(Output_path)
-        second = random.randrange(4, 8)
+        second = random.randrange(2, 6)
         time.sleep(second)
         print('Sleep {}s, and Save to {}'.format(second, Output_path))
     
