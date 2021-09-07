@@ -13,7 +13,7 @@ from twilio.rest import Client
 import argparse
 
 
-HEADERS = {
+HEADERS3 = {
     "Connection": "keep-alive",
     "Cache-Control": "max-age=0",
     # "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -23,7 +23,10 @@ HEADERS = {
     # "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,zh-TW;q=0.2",
 }
 
-# HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
+HEADERS1 = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
+
+
+HEADERS2 = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
 
 
 # def get_doctor_info(DoctorDF):
@@ -49,22 +52,37 @@ HEADERS = {
 
 
 def get_doctor_google_result(keyword, pages = 2, timeout = 10):
-    
+    keyword = keyword.lower()
+    HEADERS = HEADERS1
     searched_urls = []
+    googleTrendsUrl = 'https://google.com'
+    r = requests.get(googleTrendsUrl)
+    if r.status_code == 200:
+        g_cookies = r.cookies.get_dict()
+        
     
     # first two pages
     for page_number in range(pages):
         url = "https://www.google.com/search?q=%s&start=%s" % (keyword, (page_number)*10)
         # print(url)
-        r = requests.get(url, headers=HEADERS, timeout=timeout)
-        print(r.status_code)
+        # r = requests.get(url, headers=HEADERS, timeout=timeout)
+        r = requests.get(url, headers=HEADERS, timeout=timeout, cookies = g_cookies)
+        print(r)
         
         # try:
         #     r = requests.get(url, headers=HEADERS, timeout=10)
         # except:
         #     r = scraper.get(url, headers=HEADERS, timeout=10)
             
-            
+        # idx = 1
+        # while r.status_code == 429:
+        #     print('Sleep now {}...'.format(idx))
+        #     time.sleep(240*idx)
+        #     HEADERS = HEADERS2
+        #     r = requests.get(url, headers=HEADERS, timeout=timeout, cookies = g_cookies)
+        #     print(r)
+        #     idx += 1
+
         response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
 
         # with open('preview.html', 'w') as f:
@@ -110,8 +128,6 @@ if __name__ == '__main__':
     else:
         client = None
         # print('No SMS Client')
-
-
 
 
     start = args.start 
