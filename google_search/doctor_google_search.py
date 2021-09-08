@@ -59,6 +59,8 @@ def get_doctor_google_result(keyword, pages = 2, timeout = 10):
     r = requests.get(googleTrendsUrl)
     if r.status_code == 200:
         g_cookies = r.cookies.get_dict()
+    else:
+        g_cookies = {}
         
     
     # first two pages
