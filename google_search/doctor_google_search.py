@@ -177,6 +177,9 @@ if __name__ == '__main__':
             
         # start searching from here.
         print('\n\n{} & {}\t'.format(start + idx, idx) + str(datetime.now()), '\t', keyword, NPI)
+        if 'student' in keyword.lower():
+            print('A student here, let him/her go.')
+            pass
 
         if flag == angry_flag:
             print('Stop here: Google is angry!')
