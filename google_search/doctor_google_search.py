@@ -179,7 +179,7 @@ if __name__ == '__main__':
         print('\n\n{} & {}\t'.format(start + idx, idx) + str(datetime.now()), '\t', keyword, NPI)
         if 'student' in keyword.lower():
             print('A student here, let him/her go.')
-            pass
+            continue
 
         if flag == angry_flag:
             print('Stop here: Google is angry!')
