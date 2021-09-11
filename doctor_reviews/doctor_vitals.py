@@ -29,7 +29,7 @@ def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10, provider = Non
     print("Request url: {}".format(url))
     
     while True:
-        if api_key != None and provider != None:
+        if api_key == None and provider == None:
             scraper = cloudscraper.create_scraper()
         else:
             print('Use api keys')
