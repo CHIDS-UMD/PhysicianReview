@@ -25,21 +25,21 @@ import random
 HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36',}
 
 
-
-
-def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10):
+def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10, provider = None, api_key = None):
     print("Request url: {}".format(url))
     
     while True:
-        # scraper = cloudscraper.create_scraper()
-        scraper = cloudscraper.create_scraper(
-          interpreter='nodejs',
-          # browser='chrome',
-          captcha={
-            'provider': 'provider',
-            'api_key': 'api_key',
-          }
-        )
+        if api_key != None and provider != None:
+            scraper = cloudscraper.create_scraper()
+        else:
+            scraper = cloudscraper.create_scraper(
+                interpreter='nodejs',
+                # browser='chrome',
+                captcha={
+                    'provider': provider,
+                    'api_key': api_key',
+                }
+            )
         r = scraper.get(url, headers = headers)
         # load the text to scrapy-type response
         response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -70,10 +70,10 @@ def process_Json(response):
     return js_data
 
 
-def process_Vitals(url, min_sec = 10):
+def process_Vitals(url, min_sec, provider, api_key):
     
     print('\n=========\nExplore Doctor Profile URL: {}'.format(url))
-    response = scrape_under_cloudflare(url, min_sec = min_sec)
+    response = scrape_under_cloudflare(url, min_sec = min_sec, provider = provider, api_key = api_key)
     # print('get info from url: {}'.format(url))
     js_data = process_Json(response)
     profile = js_data['profile']
@@ -173,7 +173,14 @@ if __name__ == '__main__':
     parser.add_argument('--length', type=int, default=10000, help=' ')
     # parser.add_argument('--angry_flag', type=int, default=3, help=' ')
     parser.add_argument('--chunk', type=int, default=500, help=' ')
+    parser.add_argument('--provider', type=str, default='500', help=' ')
+    parser.add_argument('--apikey', type=str, default='500', help=' ')
+    
     args = parser.parse_args()
+
+    provider = args.provider if args.provider != '500' else None
+    api_key = args.apikey if args.apikey != '500' else None
+    
     
     start = args.start 
     end = args.length + start
@@ -255,7 +262,7 @@ if __name__ == '__main__':
 
             try:
                 print('\n\nidx {} & {}: '.format(start + idx, idx) + url)
-                doc_info = process_Vitals(url, min_sec)
+                doc_info = process_Vitals(url, min_sec, provider, api_key)
                 print('doctor name is: {}'.format(doc_info['fullname']))
             
             except Exception as e:
