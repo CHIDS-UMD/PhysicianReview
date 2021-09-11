@@ -38,6 +38,7 @@ def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10, provider = Non
                 captcha={
                     'provider': provider,
                     'api_key': api_key,
+                    'no_proxy': True,
                 }
             )
         r = scraper.get(url, headers = headers)
