@@ -32,9 +32,9 @@ def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10, provider = Non
         if api_key != None and provider != None:
             scraper = cloudscraper.create_scraper()
         else:
+            print('Use api keys')
             scraper = cloudscraper.create_scraper(
                 interpreter='nodejs',
-                # browser='chrome',
                 captcha={
                     'provider': provider,
                     'api_key': api_key,
