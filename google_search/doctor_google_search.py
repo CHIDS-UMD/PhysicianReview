@@ -98,8 +98,8 @@ def get_doctor_google_result(keyword, pages = 2, timeout = 10):
         print('Get {} results'.format(len(d)))
         searched_urls = searched_urls + d
 
-        second = random.randrange(0, 4)
-        time.sleep(second)
+        # second = random.randrange(0, 1)
+        # time.sleep(second)
         
     return searched_urls
 
@@ -205,7 +205,7 @@ if __name__ == '__main__':
 
         GoogleResult = GoogleResult.append(d, ignore_index=True)
         GoogleResult.to_pickle(Output_path)
-        second = random.randrange(2, 6)
+        second = random.randrange(2, 3)
         time.sleep(second)
         print('Sleep {}s, and Save to {}'.format(second, Output_path))
     
