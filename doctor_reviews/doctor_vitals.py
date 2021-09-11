@@ -31,7 +31,15 @@ def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10):
     print("Request url: {}".format(url))
     
     while True:
-        scraper = cloudscraper.create_scraper()
+        # scraper = cloudscraper.create_scraper()
+        scraper = cloudscraper.create_scraper(
+          interpreter='nodejs',
+          # browser='chrome',
+          captcha={
+            'provider': 'provider',
+            'api_key': 'api_key',
+          }
+        )
         r = scraper.get(url, headers = headers)
         # load the text to scrapy-type response
         response = TextResponse(r.url, body = r.text, encoding = 'utf-8')
@@ -45,6 +53,7 @@ def scrape_under_cloudflare(url, headers = HEADERS, min_sec = 10):
             time.sleep(second)
             
     return response
+
 
 def process_Json(response):
     xpath = './/script//text()'
