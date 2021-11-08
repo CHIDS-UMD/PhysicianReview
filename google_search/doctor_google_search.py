@@ -210,12 +210,5 @@ if __name__ == '__main__':
         print('Sleep {}s, and Save to {}'.format(second, Output_path))
     
     # print(client)
-    if flag < angry_flag and client:
-        message = client.messages.create(body =  "Success ! Save as {}, with current idx {}.".format(Output_path, start + idx),
-                                         from_ = "+16106012683 ", to = "+12405243597", )
-
-    if flag >= angry_flag and client: 
-        message = client.messages.create(body =  "Failed ! Google is Angry! Save as {}, with current idx {}.".format(Output_path, start + idx),
-                                         from_ = "+16106012683 ", to = "+12405243597", )
 
 
