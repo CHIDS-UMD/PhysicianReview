@@ -10,7 +10,7 @@ Part2/
 __pycache__/*
 *.pyc 
 
-Output/
+
 
 _other/
 DoctorReview/
@@ -21,10 +21,24 @@ DoctorReview/
 *.pptx
 
 
-DAC_*.*
-DOC_*.*
-
 */NPI2URL
 
+doctor_directory/Data
+doctor_directory/Output
 
-*.csv
+google_search/Data/NPPESMDDOPhysician.p
+google_search/Output/
+
+doctor_reviews/Data/DOJ
+doctor_reviews/Data/*.p
+doctor_reviews/Data/*.csv
+doctor_reviews/Data/*.txt
+doctor_reviews/Output/
+
+
+final_analysis/Data/NPPES 
+final_analysis/Data/Reviews 
+
+final_analysis/Output/MinText0/*.p 
+final_analysis/Output/MinText1/*.p 
+
