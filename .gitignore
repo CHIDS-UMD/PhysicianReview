@@ -27,7 +27,7 @@ doctor_directory/Data
 doctor_directory/Output
 
 google_search/Data/NPPESMDDOPhysician.p
-google_search/Output/
+google_search/Output/*.p
 
 doctor_reviews/Data/DOJ
 doctor_reviews/Data/*.p
