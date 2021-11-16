@@ -11,9 +11,9 @@ The average age of online reviews is 5.30 years. Moreover, 39.82% of physicians�
 The persistent nature of online reviews has created a situation where online review information is aging; an issue that will only be exacerbated with the passage of time. Physicians’ online reputation may be inappropriately determined by reviews posted years ago and may not be reflective of their more recent performance. Policy action is necessary to help prevent patients from being misled and physicians from being misrepresented by outdated online reviews. 
 
 
-# Structure of Reprository
+## Structure of Repository
 
-This repository contains two main parts: (1) Data Collection and (2) Data Analysis.
+This repository contains two main sections providing overviews of: (1) [data collection](https://github.com/CHIDS-UMD/PhysicianReview/#data-collection) and (2) [data analysis](https://github.com/CHIDS-UMD/PhysicianReview/#data-analysis).
 
 # Data Collection
 
@@ -41,11 +41,11 @@ See the Folder [google_search](google_search) for more information. The URL2Sear
 Based on all websites returned in the search results, we identified the top online physician review platforms: Healthgrades (737,126), Vitals (774,083), RateMDs (178,888), ZocDoc (179,180), and Yelp (39,344). We then focused on these five platforms for our examination of online review information. See the summary of collected URL files [URLReport.csv](google_search/Output/URLReport.csv) for more information.
 
 ## Physician Profile Collection
-We developed Python scripts to download the online reviews. Our Python scripts went through all URLs identified for the five online review platforms. The collection is time-consuming, the related code and data information is in Folder [doctor_reviews](doctor_reviews).
+We developed Python scripts to download the online reviews. Our Python scripts went through all URLs identified for the five online review platforms. The collection is time-consuming, the related code and data information is in the [doctor_reviews](doctor_reviews) folder.
 
 
 ### Physician Cleansing
-After collecting all the data, we first filter out the valid physicians. 
+After collecting all the data, we first filter for only the valid physicians. 
 There were sometimes multiple, slightly different URLs pointing to different pages/sections of the same physician’s profile page. 
 
 To construct the clean sample, we removed duplicated profile pages from the search results. The information collected includes each physician’s basic profile data, which we used to verify that the profile corresponds to the correct physician and online reviews. We also identified the duplicated and unmatched physicians from the dataset. 
@@ -55,19 +55,20 @@ After dropping mismatched and duplicated profiles and physicians with invalid pr
 This detailed information for physician cleansing is in the file [PhysicianReport](final_analysis/PhysicianReport.csv).
 
 ### Why do we exclude ZocDoc?
-Of the five platforms, 56.80% of ZocDoc reviews are not clearly labeled with exact posting time. Therefore, we focused on the other four platforms and excluded ZocDoc from our main analyses. As a robustness test, we also included the 43.20% of the ZocDoc reviews that provided timestamp and found consistent results.
+Of the five platforms, 56.80% of ZocDoc reviews are not clearly labeled with an exact posting time. Therefore, we focused on the other four platforms and excluded ZocDoc from our main analyses. As a robustness test, we also included the 43.20% of the ZocDoc reviews that provided a timestamp and found consistent results.
 
 
 ## Final Analytical Sample
 The reviews we studied here contain both review with and without textual comments.
-We first filter out the reviews without valid timestamps. Then to align the observation date for all the physicians, we set our observation date as August 1st, 2021 and removed all online reviews posted after the observation date. After the above processing, the final data sample contains 8,693,553 reviews from the four major online review platforms: Healthgrades (2,120,982), Vitals (6,056,497), RateMDs (295,674), and Yelp (220,400). In total, among the 1,141,176 US physicians, our comprehensive data covers 887,354 physicians (77.76% of US physicians) who have at least one profile page from any of the five platforms and 587,562 (51.49% of US physicians) who have at least one review. For more information, see [ReviewReport](final_analysis/Output/MinText0/ReviewReport.csv).
+We first filter out the reviews without valid timestamps. Then to align the observation date for all the physicians, we set our observation date as August 1st, 2021 and removed all online reviews posted on or after the observation date. After the above processing, the final data sample contains 8,693,553 reviews from the four major online review platforms: Healthgrades (2,120,982), Vitals (6,056,497), RateMDs (295,674), and Yelp (220,400). In total, among the 1,141,176 US physicians, our comprehensive data covers 887,354 physicians (77.76% of US physicians) who have at least one profile page from any of the five platforms and 587,562 (51.49% of US physicians) who have at least one review. For more information, see [ReviewReport](final_analysis/Output/MinText0/ReviewReport.csv).
 
 # Data Analysis
 
 Our final data sample contains 8,693,563 reviews from the four major online review platforms: Healthgrades (2,120,982), Vitals (6,056,497), RateMDs (295,674), and Yelp (220,400). In total, of the 1,141,176 physicians, 587,562 (51.49%) have at least one review on any of the above websites.
 
 ## Timeliness of Online Reviews
-Across the four platforms, the average age of online reviews is 5.30 years as of August 1, 2021. This indicates that the average physician ratings published on the websites visited by patients as they search for doctors are based on online reviews that are 5.30 years old. Outdated information is prevalent on all the online physician review platforms ‒ the average age of online reviews is 2.74 years for Healthgrades, 6.08 years for Vitals, 7.80 years for RateMDs, and 5.10 years for Yelp. Across all platforms, millions of online reviews have accumulated in the past 17 years, but only a small proportion were written in recent years. Between August 1, 2020 and August 1, 2021 (the most recent year in our data), 542,998 reviews were created, constituting only 6.25% of all online reviews. If we extend this time window to two or three years, the number of reviews is 1,217,937 (14.01%) and 2,027,319 (23.32%), respectively. 
+
+Across the four platforms, the average age of online reviews is 5.30 years as of August 1, 2021. This indicates that the average physician ratings published on the websites visited by patients as they search for doctors are based on online reviews that are 5.30 years old. Outdated information is prevalent on all the online physician review platforms ‒ the average age of online reviews is 2.74 years for Healthgrades, 6.08 years for Vitals, 7.80 years for RateMDs, and 5.10 years for Yelp. Across all platforms, millions of online reviews have accumulated in the past 17 years, but only a small proportion were written in recent years. Between August 1, 2020 and July 31, 2021 (inclusive), 542,998 reviews were created, constituting only 6.25% of all online reviews. If we extend this time window to two or three years, the number of reviews is 1,217,937 (14.01%) and 2,027,319 (23.32%), respectively. 
 
 See [ResultForReviewAge](final_analysis/Data/ReviewAge) for detailed information.
 
@@ -77,7 +78,7 @@ The reviews created overall time is as:
 
 ## Physician Recent Review Rate
 
-We calculated the average age of reviews for each of the `587,562` physicians who are rated on the four websites studied. The average physician-level review age is `4.92` years, which is very outdated. Significant review age is consistent across each platform: `3.02` years for Healthgrades, `6.05` years for Vitals, `8.32` years for RateMDs, and `4.78` years for Yelp. As reported in Figure 1, `233,988` `(39.82%)` of physicians have no recent reviews within a three-year period prior to our observation day (08/01/2018-2-08/01/2021). When we focus on the most recent two years or one year, the percentage of physicians without recent reviews is more alarming (`54.73%` for two years and `72.88%` for one year). See [ResultForPhysicianRecentRate](final_analysis/PhysicianRecentReview) for more information.
+We calculated the average age of reviews for each of the `587,562` physicians who are rated on the four websites studied. The average physician-level review age is `4.92` years, which is very outdated. Significant review age is consistent across each platform: `3.02` years for Healthgrades, `6.05` years for Vitals, `8.32` years for RateMDs, and `4.78` years for Yelp. As reported in Figure 1, `233,988` `(39.82%)` of physicians have no recent reviews within a three-year period prior to our observation day (August 1st, 2018 - July 31st, 2021). When we focus on the most recent two years or one year, the percentage of physicians without recent reviews is more alarming (`54.73%` for two years and `72.88%` for one year). See [ResultForPhysicianRecentRate](final_analysis/PhysicianRecentReview) for more information.
 
 ## Recent Review Scores Changed and Absent On Physician's Profile
 
@@ -113,7 +114,7 @@ From the above two criteria, for these four platforms, the differences between r
 
 # Environment Setting 
 
-To reproduce the collecting producure, you need first set up the environment. 
+To reproduce the data collection procedure, you need first set up the environment. 
 
 ```shell
 wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh
