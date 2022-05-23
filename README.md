@@ -37,7 +37,7 @@ To construct the clean sample, we removed duplicated profile pages from the sear
 
 After dropping mismatched and duplicated profiles and physicians with invalid profile scores, the number of physicians identified on each platform is: 719,717 (2,148,323 reviews) for Healthgrades, 720,293 (6,063,074 reviews) for Vitals, 152,678 (296,904 reviews) for RateMDs, 167,996 (901,681 reviews) for ZocDoc, and 30,902 (221,984 reviews) for Yelp. 
 
-This detailed information for physician cleansing is in the file [PhysicianReport](final_analysis/PhysicianReport.csv).
+<!-- This detailed information for physician cleansing is in the file [PhysicianReport](final_analysis/PhysicianReport.csv). -->
 
 ### Why do we exclude ZocDoc?
 Of the five platforms, 56.80% of ZocDoc reviews are not clearly labeled with an exact posting time. Therefore, we focused on the other four platforms and excluded ZocDoc from our main analyses. As a robustness test, we also included the 43.20% of the ZocDoc reviews that provided a timestamp and found consistent results.
