@@ -2,10 +2,9 @@
 .DS_Store
 .ipynb_checkpoints/
 # Data/
-RegResult/
-Workplace/
-# RaceVaccineBackup/
 Part2/
+
+
 
 __pycache__/*
 *.pyc 
@@ -13,13 +12,19 @@ __pycache__/*
 
 
 _other/
-DoctorReview/
+_etc/
+
+_etc/*.png 
+doctor_reviews/
+
+DoctorReview/Data
+
 */DocListDF_All.p
 *.sql
 *.html
 *0.p
 *.pptx
-
+*Icon*
 
 */NPI2URL
 
@@ -36,8 +41,10 @@ doctor_reviews/Data/*.txt
 doctor_reviews/Output/
 
 
-final_analysis/Data/NPPES 
-final_analysis/Data/Reviews 
+final_analysis/Data/
+final_analysis/LMER/
+final_analysis/Output/
+final_analysis/ReviewDF/
 
 final_analysis/Output/MinText0/*.p 
 final_analysis/Output/MinText1/*.p 
